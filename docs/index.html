@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpender - Personal Finance for Danish Bank Customers</title>
+  <meta name="description" content="A Claude Cowork plugin that turns Danish bank statements into actionable financial insights. Sync transactions, detect subscriptions, and save money.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="SmartSpender - Personal Finance for Danish Bank Customers">
+  <meta property="og:description" content="A Claude Cowork plugin that turns Danish bank statements into actionable financial insights.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://peerjakobsen.github.io/smartspender/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SmartSpender">
+  <meta name="twitter:description" content="A Claude Cowork plugin that turns Danish bank statements into actionable financial insights.">
+
+  <!-- Tailwind CSS 4 via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- IBM Plex Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+      --color-primary-50: #f0f7ff;
+      --color-primary-100: #e0efff;
+      --color-primary-200: #b9dfff;
+      --color-primary-300: #7cc5ff;
+      --color-primary-400: #36a8ff;
+      --color-primary-500: #0c8cef;
+      --color-primary-600: #0070cc;
+      --color-primary-700: #0059a5;
+      --color-primary-800: #044c88;
+      --color-primary-900: #0a3f70;
+      --color-primary-950: #07284a;
+      --color-accent-50: #f0fdf4;
+      --color-accent-100: #dcfce7;
+      --color-accent-200: #bbf7d0;
+      --color-accent-300: #86efac;
+      --color-accent-400: #4ade80;
+      --color-accent-500: #22c55e;
+      --color-accent-600: #16a34a;
+      --color-accent-700: #15803d;
+      --color-accent-800: #166534;
+      --color-accent-900: #14532d;
+      --color-surface-50: #fafafa;
+      --color-surface-100: #f4f4f5;
+      --color-surface-200: #e4e4e7;
+      --color-surface-300: #d4d4d8;
+      --color-surface-400: #a1a1aa;
+      --color-surface-500: #71717a;
+      --color-surface-600: #52525b;
+      --color-surface-700: #3f3f46;
+      --color-surface-800: #27272a;
+      --color-surface-900: #18181b;
+      --color-surface-950: #09090b;
+    }
+
+    @layer base {
+      html {
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    }
+  </style>
+
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-white text-surface-900 dark:bg-surface-950 dark:text-surface-100 antialiased">
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-surface-950/80 backdrop-blur-lg border-b border-surface-200 dark:border-surface-800">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 cursor-pointer" aria-label="SmartSpender home">
+        <svg class="w-7 h-7 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"/>
+          <path d="M12 18V6"/>
+        </svg>
+        <span class="font-semibold text-lg text-surface-900 dark:text-white">SmartSpender</span>
+      </a>
+      <a href="https://github.com/peerjakobsen/smartspender" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-white transition-colors duration-200 cursor-pointer" aria-label="View SmartSpender on GitHub">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span class="hidden sm:inline">GitHub</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="pt-32 pb-20 sm:pt-40 sm:pb-28 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 rounded-full bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 px-4 py-1.5 mb-8">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
+        </span>
+        <span class="text-sm font-medium text-primary-700 dark:text-primary-300">Claude Cowork Plugin</span>
+      </div>
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-surface-950 dark:text-white leading-tight">
+        Find the money leaks you didn't know you had
+      </h1>
+      <p class="mt-6 text-lg sm:text-xl text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
+        SmartSpender turns your Danish bank statements into clear insights. Sync transactions, spot forgotten subscriptions, and get actionable advice to save money &mdash; all through conversation with Claude.
+      </p>
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="https://github.com/peerjakobsen/smartspender" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-surface-900 dark:bg-white text-white dark:text-surface-900 font-semibold px-6 py-3 rounded-lg hover:bg-surface-800 dark:hover:bg-surface-100 transition-colors duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-950">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          View on GitHub
+        </a>
+        <a href="#how-it-works" class="inline-flex items-center gap-1 text-surface-600 dark:text-surface-400 font-medium hover:text-surface-900 dark:hover:text-white transition-colors duration-200 cursor-pointer">
+          See how it works
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem / Solution -->
+  <section class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-surface-50 dark:bg-surface-900">
+    <div class="max-w-5xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white">
+            Ever wonder where your money actually goes?
+          </h2>
+          <p class="mt-4 text-surface-600 dark:text-surface-400 leading-relaxed">
+            Bank statements are fragmented and hard to read. Subscriptions accumulate silently. Forgotten trials convert to paid plans. And there's no easy way to get a clear picture &mdash; let alone take action.
+          </p>
+        </div>
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6 shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+            <span class="ml-2 text-xs font-mono text-surface-400">Claude Cowork</span>
+          </div>
+          <div class="space-y-3 font-mono text-sm">
+            <p class="text-surface-500 dark:text-surface-400">
+              <span class="text-primary-600 dark:text-primary-400">You:</span> What subscriptions am I paying for?
+            </p>
+            <div class="text-surface-700 dark:text-surface-300">
+              <p class="text-primary-600 dark:text-primary-400 mb-2">Claude:</p>
+              <p>I found <span class="font-semibold text-surface-900 dark:text-white">18 active subscriptions</span> totaling <span class="font-semibold text-surface-900 dark:text-white">1.847 kr/month</span>:</p>
+              <div class="mt-2 space-y-1 text-xs">
+                <p>Netflix &mdash; 149 kr/md</p>
+                <p>Spotify Family &mdash; 179 kr/md</p>
+                <p class="text-amber-600 dark:text-amber-400">Viaplay &mdash; 99 kr/md (ingen brug i 3 mdr.)</p>
+                <p class="text-surface-400">...15 mere</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white">How it works</h2>
+        <p class="mt-3 text-surface-600 dark:text-surface-400">Three steps to financial clarity</p>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-8 lg:gap-12">
+        <!-- Step 1 -->
+        <div class="text-center">
+          <div class="w-14 h-14 rounded-xl bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mx-auto mb-5">
+            <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </div>
+          <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">Step 1</div>
+          <h3 class="text-lg font-semibold text-surface-900 dark:text-white mb-2">Install the plugin</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Upload SmartSpender to Claude Desktop as a Cowork plugin. One zip file, no code, no servers.
+          </p>
+        </div>
+        <!-- Step 2 -->
+        <div class="text-center">
+          <div class="w-14 h-14 rounded-xl bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mx-auto mb-5">
+            <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">Step 2</div>
+          <h3 class="text-lg font-semibold text-surface-900 dark:text-white mb-2">Sync your bank</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Say <code class="text-xs bg-surface-100 dark:bg-surface-800 px-1.5 py-0.5 rounded font-mono">/smartspender:sync</code> and log in with MitID. Claude handles the rest.
+          </p>
+        </div>
+        <!-- Step 3 -->
+        <div class="text-center">
+          <div class="w-14 h-14 rounded-xl bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mx-auto mb-5">
+            <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="20" x2="12" y2="10"/>
+              <line x1="18" y1="20" x2="18" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="16"/>
+            </svg>
+          </div>
+          <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">Step 3</div>
+          <h3 class="text-lg font-semibold text-surface-900 dark:text-white mb-2">Get insights</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Ask questions naturally. Get spending breakdowns, subscription lists, and specific advice to save money.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-surface-50 dark:bg-surface-900">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white">What SmartSpender does</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white mb-2">Sync transactions</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Pull transactions directly from your netbank via browser automation. You handle MitID login, Claude handles the export.
+          </p>
+        </div>
+        <!-- Feature 2 -->
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white mb-2">Detect hidden subscriptions</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Automatically spots recurring charges by analyzing transaction patterns &mdash; frequency, amounts, and merchants.
+          </p>
+        </div>
+        <!-- Feature 3 -->
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white mb-2">Smart categorization</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Understands Danish merchants like Netto, Foetex, TDC, and Fitness World. Categories in Danish, built for your spending.
+          </p>
+        </div>
+        <!-- Feature 4 -->
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-accent-50 dark:bg-accent-950 border border-accent-200 dark:border-accent-800 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-accent-600 dark:text-accent-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white mb-2">Actionable savings</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Not just data &mdash; specific advice. "You have 3 streaming services at 847 kr/month. Cancel Viaplay to save 1.188 kr/year."
+          </p>
+        </div>
+        <!-- Feature 5 -->
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white mb-2">Privacy-first</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            All data stays in your own local CSV files. No external databases, no third-party services. You own everything.
+          </p>
+        </div>
+        <!-- Feature 6 -->
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white mb-2">Cancel with assistance</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            Guided cancellation for 20+ Danish subscription services. Claude navigates the cancellation flow while you confirm.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commands -->
+  <section class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white">Commands</h2>
+        <p class="mt-3 text-surface-600 dark:text-surface-400">Everything starts with a slash command</p>
+      </div>
+      <div class="space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 px-5 py-4">
+          <code class="font-mono text-sm font-medium text-primary-700 dark:text-primary-300 whitespace-nowrap">/smartspender:sync</code>
+          <span class="hidden sm:block text-surface-300 dark:text-surface-600">&mdash;</span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Pull latest transactions from your bank</span>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 px-5 py-4">
+          <code class="font-mono text-sm font-medium text-primary-700 dark:text-primary-300 whitespace-nowrap">/smartspender:overview</code>
+          <span class="hidden sm:block text-surface-300 dark:text-surface-600">&mdash;</span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">See spending by category with month-over-month changes</span>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 px-5 py-4">
+          <code class="font-mono text-sm font-medium text-primary-700 dark:text-primary-300 whitespace-nowrap">/smartspender:subscriptions</code>
+          <span class="hidden sm:block text-surface-300 dark:text-surface-600">&mdash;</span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">List all detected recurring charges</span>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 px-5 py-4">
+          <code class="font-mono text-sm font-medium text-primary-700 dark:text-primary-300 whitespace-nowrap">/smartspender:cancel [service]</code>
+          <span class="hidden sm:block text-surface-300 dark:text-surface-600">&mdash;</span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Cancel an unwanted subscription with guided automation</span>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 px-5 py-4">
+          <code class="font-mono text-sm font-medium text-primary-700 dark:text-primary-300 whitespace-nowrap">/smartspender:report [month]</code>
+          <span class="hidden sm:block text-surface-300 dark:text-surface-600">&mdash;</span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Generate a detailed monthly spending report</span>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 px-5 py-4">
+          <code class="font-mono text-sm font-medium text-primary-700 dark:text-primary-300 whitespace-nowrap">/smartspender:analyze</code>
+          <span class="hidden sm:block text-surface-300 dark:text-surface-600">&mdash;</span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Categorize transactions and detect subscription patterns</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy -->
+  <section class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-surface-50 dark:bg-surface-900">
+    <div class="max-w-3xl mx-auto text-center">
+      <div class="w-14 h-14 rounded-xl bg-accent-50 dark:bg-accent-950 border border-accent-200 dark:border-accent-800 flex items-center justify-center mx-auto mb-6">
+        <svg class="w-7 h-7 text-accent-600 dark:text-accent-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white">Your data stays yours</h2>
+      <p class="mt-4 text-surface-600 dark:text-surface-400 leading-relaxed max-w-xl mx-auto">
+        SmartSpender stores all financial data as local CSV files on your machine. No external databases, no cloud uploads, no third-party analytics. Bank credentials are never handled by the plugin &mdash; you authenticate directly with your bank via MitID. Every action is logged locally for full transparency.
+      </p>
+      <div class="mt-10 grid sm:grid-cols-3 gap-6 text-left">
+        <div class="flex gap-3">
+          <svg class="w-5 h-5 text-accent-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-surface-900 dark:text-white">Local storage</p>
+            <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Data lives on your machine in CSV files</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <svg class="w-5 h-5 text-accent-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-surface-900 dark:text-white">No credentials stored</p>
+            <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">You handle MitID login directly</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <svg class="w-5 h-5 text-accent-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-surface-900 dark:text-white">Full audit trail</p>
+            <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Every action logged for transparency</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Requirements -->
+  <section class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white">What you need</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="flex gap-4 items-start bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 p-5">
+          <svg class="w-5 h-5 text-primary-600 dark:text-primary-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-surface-900 dark:text-white">Claude Desktop</p>
+            <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">With Cowork enabled (Pro, Max, Team, or Enterprise)</p>
+          </div>
+        </div>
+        <div class="flex gap-4 items-start bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 p-5">
+          <svg class="w-5 h-5 text-primary-600 dark:text-primary-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="4"/>
+            <line x1="21.17" y1="8" x2="12" y2="8"/>
+            <line x1="3.95" y1="6.06" x2="8.54" y2="14"/>
+            <line x1="10.88" y1="21.94" x2="15.46" y2="14"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-surface-900 dark:text-white">Claude in Chrome</p>
+            <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">Browser extension for bank navigation</p>
+          </div>
+        </div>
+        <div class="flex gap-4 items-start bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 p-5">
+          <svg class="w-5 h-5 text-primary-600 dark:text-primary-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-surface-900 dark:text-white">Danish bank account</p>
+            <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">Nykredit supported now, more banks coming</p>
+          </div>
+        </div>
+        <div class="flex gap-4 items-start bg-surface-50 dark:bg-surface-800/50 rounded-lg border border-surface-200 dark:border-surface-700 p-5">
+          <svg class="w-5 h-5 text-primary-600 dark:text-primary-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-surface-900 dark:text-white">MitID</p>
+            <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">For secure bank authentication</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Coming Soon -->
+  <section class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-surface-50 dark:bg-surface-900">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white">Coming soon</h2>
+      <p class="mt-3 text-surface-600 dark:text-surface-400">On the roadmap for future releases</p>
+      <div class="mt-10 grid sm:grid-cols-3 gap-6">
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-surface-100 dark:bg-surface-700 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-5 h-5 text-surface-500 dark:text-surface-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white text-sm mb-1">More banks</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400">Danske Bank, Nordea, Lunar, and more</p>
+        </div>
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-surface-100 dark:bg-surface-700 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-5 h-5 text-surface-500 dark:text-surface-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white text-sm mb-1">Receipt scanning</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400">Line-item insights from grocery receipts</p>
+        </div>
+        <div class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-6">
+          <div class="w-10 h-10 rounded-lg bg-surface-100 dark:bg-surface-700 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-5 h-5 text-surface-500 dark:text-surface-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-surface-900 dark:text-white text-sm mb-1">e-Boks invoices</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400">Parse utility bills and telecom invoices</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-surface-200 dark:border-surface-800">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-surface-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"/>
+          <path d="M12 18V6"/>
+        </svg>
+        <span class="text-sm text-surface-500 dark:text-surface-400">SmartSpender &mdash; Built for Claude Cowork</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="https://github.com/peerjakobsen/smartspender" target="_blank" rel="noopener noreferrer" class="text-sm text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-white transition-colors duration-200 cursor-pointer">
+          GitHub
+        </a>
+        <span class="text-sm text-surface-400 dark:text-surface-500">MIT License</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
