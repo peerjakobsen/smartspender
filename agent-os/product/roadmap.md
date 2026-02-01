@@ -63,20 +63,48 @@ Bank transactions show aggregated amounts without detail:
 - **Transaction Matching** -- Link receipts to transactions by date ± 1 day and amount match
 - **ReceiptItems Sheet** -- New Google Sheet storing item-level data with categories/subcategories
 - **Command: `/smartspender:receipt upload`** -- Upload and process a single receipt
+- **Receipt Spending Breakdown** -- After upload, show subcategory spending breakdown (e.g., Alkohol 24%, Kød 13%) so users can see where their grocery money goes
 
 ### Phase 3b: Grocery Chain Integration
-- **Storebox Integration** -- Fetch digital receipts from Føtex, Bilka, Netto, Salling via unofficial API (auth-token from cookies)
 - **Coop Member Portal** -- Browser automation to extract receipts from coop.dk/medlem (Kvickly, Brugsen, Irma)
-- **Automatic Sync** -- Periodic fetch of new receipts and auto-matching to transactions
-- **Command: `/smartspender:receipt storebox`** -- Sync Storebox receipts
 - **Command: `/smartspender:receipt coop`** -- Sync Coop receipts
 
 ### Phase 3c: Digital Invoice Sources
-- **e-Boks Integration** -- Browser automation + MitID for utility bills, insurance, telecom invoices
 - **Email Attachment Processing** -- Gmail MCP to extract receipts from order confirmations
-- **Invoice Templates** -- Pre-built parsers for TDC, HOFOR, Ørsted, Tryg, etc.
-- **Command: `/smartspender:receipt eboks`** -- Sync e-Boks invoices
 - **Command: `/smartspender:receipt email`** -- Scan Gmail for receipt attachments
+
+### Phase 3d: Learning Invoice Parser
+
+Invoices are discussed interactively with Cowork. As you verify and correct extractions, Cowork learns the structure. That knowledge persists for future invoices from the same vendor.
+
+**The Loop:**
+1. Upload invoice → Check `invoice-knowledge/{vendor}/PARSER.md`
+2. If exists → Use learned structure, extract confidently
+3. If not → Parse best-effort, discuss with user, verify
+4. After verification → Save learnings to parser file
+
+**Cowork for discovery, persist what it learns.** Same pattern that worked for the Nykredit bank adapter.
+
+**File Structure:**
+```
+invoice-knowledge/
+├── tdc/
+│   └── PARSER.md
+├── hofor/
+│   └── PARSER.md
+├── orsted/
+│   └── PARSER.md
+└── _template.md
+```
+
+**Parser File Contents:**
+- Vendor name and type
+- Invoice structure (pages, sections)
+- Extraction rules (what to pull, how to categorize)
+- Learned corrections from user feedback
+- Last updated timestamp
+
+**Command: `/smartspender:receipt learn`** -- Save current conversation's learnings to parser file
 
 ### Data Architecture: ReceiptItems Sheet
 | Column | Type | Description |
