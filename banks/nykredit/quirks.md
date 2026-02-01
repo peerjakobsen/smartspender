@@ -43,7 +43,7 @@ Without this, the form will not update dependent fields or enable the "Næste" b
 
 ### 7. Smartspender Preset Saves ~20 Manual Interactions
 
-The pre-configured "smartspender" preset (value `0000000001`) auto-selects accounts, export fields, format, and checkbox options. Without it, you would need to manually configure ~20 form fields. Always use the preset.
+The pre-configured "smartspender" preset auto-selects accounts, export fields, format, and checkbox options. The preset value is assigned by the bank and varies per user — always look it up by text label in the `standardExport` dropdown, never hardcode the value. Without the preset, you would need to manually configure ~20 form fields. Always use the preset.
 
 ### 8. Re-Export is Safe (Previously Exported Filter Unchecked)
 
@@ -59,6 +59,12 @@ The bank session expires after approximately 15 minutes of inactivity. If the se
 ### 10. Multiple Accounts in Single Export
 
 The smartspender preset includes all 5 DKK accounts but excludes the EUR account. All transactions from all included accounts appear in a single CSV file. The `Exportkonto` column identifies which account each transaction belongs to.
+
+### 11. URL Navigation Triggers Re-Authentication
+
+Navigating between different URLs within an active Nykredit netbank session forces a full MitID re-authentication. For example, if you first navigate to `https://netbank.nykredit.dk`, log in, and then navigate to the export page at `https://netbank.nykredit.dk/privat/accounts/save-postings`, the session is not carried over and the user must log in again.
+
+**Workaround**: Always navigate directly to the target URL (the export page) before the user logs in. The export URL triggers a MitID redirect automatically, and after login the browser returns directly to the export page.
 
 ## Transaction Description Patterns
 

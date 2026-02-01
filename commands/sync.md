@@ -25,12 +25,12 @@ description: Sync transactions from your bank account via CSV export
 1. Identify the target bank from the `bank` argument
 2. If `bank` is `all`, iterate through all active accounts in accounts.csv. Otherwise, proceed with the specified bank.
 3. Load the bank adapter: `banks/{bank}/BANK.md`
-4. Open the bank's netbank URL in the browser
-5. Announce: "Jeg har åbnet {bank} netbank. Log venligst ind med MitID. Sig til, når du er logget ind."
+4. Open the bank's export URL directly in the browser (triggers MitID login redirect)
+5. Announce: "Jeg har åbnet {bank} eksportsiden. Du bliver bedt om at logge ind med MitID — efter login kommer du direkte til eksportsiden. Sig til, når du er logget ind."
 6. **[USER ACTION]**: User completes MitID login
 7. **[USER ACTION]**: User confirms login complete ("Jeg er logget ind")
-8. Verify login succeeded by checking for expected post-login page elements
-9. Navigate to the export page (per bank adapter navigation flow)
+8. Verify the export page loaded correctly by checking for expected page elements
+9. Check if first-time setup is needed; if the smartspender preset is missing from the dropdown, guide the user through setup (per bank adapter First-Time Setup flow)
 10. Wait for the export form to load (per bank adapter — may involve waiting for iframe)
 11. Execute the export automation script from the bank adapter:
     - Select the smartspender preset
@@ -72,6 +72,7 @@ If no new transactions: "Ingen nye transaktioner fundet siden sidste synkroniser
 | Session expired during export | "Banksessionen er udløbet. Log venligst ind igen med MitID." |
 | No CSV downloaded | "CSV-download mislykkedes. Prøv venligst igen." |
 | No new transactions | "Ingen nye transaktioner fundet siden sidste synkronisering ({date})." |
+| Preset not found | "Præferencen 'smartspender' blev ikke fundet. Vi opretter den nu — følg vejledningen." (then trigger First-Time Setup flow from bank adapter) |
 | No accounts configured | "Ingen konti konfigureret. Kør /smartspender:add-account først." |
 | Unknown bank | "Banken '{bank}' er ikke understøttet. Tilgængelige banker: nykredit" |
 
