@@ -192,7 +192,63 @@ setting_key,setting_value,updated_at
 - Read all: at command startup to load configuration
 - Update row: when user changes a setting
 
-### 8. merchant-overrides.csv
+### 8. receipts.csv (Receipt Metadata)
+
+Stores one row per uploaded receipt with extraction results and transaction match status.
+
+**Header row**:
+```
+receipt_id,transaction_id,date,merchant,total_amount,currency,source,file_reference,match_status,match_confidence,item_count,created_at
+```
+
+| Column | Type | Description |
+|--------|------|-------------|
+| receipt_id | string | Unique receipt ID (`rcpt-` prefix + 8 hex chars) |
+| transaction_id | string | Matched tx_id from transactions.csv (empty if unmatched) |
+| date | date | Receipt date (YYYY-MM-DD) |
+| merchant | string | Normalized merchant name |
+| total_amount | number | Receipt total as positive number |
+| currency | string | ISO currency code (DKK) |
+| source | string | How obtained: `upload`, `storebox`, `coop`, `eboks`, `email` |
+| file_reference | string | Local archive path (e.g. `receipts/rcpt-a1b2c3d4.jpg`) |
+| match_status | string | `matched`, `unmatched`, `ambiguous` |
+| match_confidence | number | Confidence of the transaction match (0.0-1.0) |
+| item_count | number | Number of line items extracted |
+| created_at | datetime | When the receipt was processed (YYYY-MM-DD HH:MM:SS) |
+
+**File operations**:
+- Append row: after receipt extraction and matching completes
+- Read all: for deduplication check (date + merchant + total_amount)
+- Read filtered by transaction_id: to find receipts linked to a specific transaction
+- Update row: when user corrects a match
+
+### 9. receipt-items.csv (Line Items)
+
+Stores individual line items from each receipt with product-level categorization.
+
+**Header row**:
+```
+item_id,receipt_id,item_name,quantity,unit_price,total_price,category,subcategory,discount,created_at
+```
+
+| Column | Type | Description |
+|--------|------|-------------|
+| item_id | string | Unique item ID (`ritm-` prefix + 8 hex chars) |
+| receipt_id | string | Reference to receipts.csv |
+| item_name | string | Product name as printed on receipt |
+| quantity | number | Quantity purchased (default 1) |
+| unit_price | number | Price per unit as positive number |
+| total_price | number | Line total as positive number |
+| category | string | Danish product category |
+| subcategory | string | Product-level subcategory (see `skills/receipt-parsing/SKILL.md`) |
+| discount | number | Discount amount as positive number (0 if none) |
+| created_at | datetime | When the item was extracted (YYYY-MM-DD HH:MM:SS) |
+
+**File operations**:
+- Append rows: batch insert all items for a receipt after extraction
+- Read filtered by receipt_id: to display line items for a specific receipt
+
+### 10. merchant-overrides.csv
 
 Learned merchant categorization rules from user corrections. When a user manually recategorizes a transaction, the correction is stored here as a reusable rule for future transactions from the same merchant.
 
@@ -218,6 +274,8 @@ raw_pattern,merchant,category,subcategory,created_at
 
 ```
 transactions.csv --[tx_id]--> categorized.csv
+transactions.csv --[tx_id]--> receipts.csv (via transaction_id)
+receipts.csv --[receipt_id]--> receipt-items.csv
 categorized.csv --[merchant + is_recurring]--> subscriptions.csv
 categorized.csv --[month + category]--> monthly-summary.csv
 merchant-overrides.csv <-- learned from manual corrections in categorized.csv
