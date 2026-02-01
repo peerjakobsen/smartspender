@@ -1,0 +1,90 @@
+---
+description: Show spending summary with category breakdown and savings suggestions
+---
+
+# /smartspender:overview
+
+## Trigger
+- `/smartspender:overview [month]`
+- "Vis mit forbrugsoverblik"
+- "Hvordan ser mit forbrug ud?"
+- "Show my spending overview"
+
+## Arguments
+
+| Argument | Required | Values | Default |
+|----------|----------|--------|---------|
+| month | no | januar, februar, ..., 2026-01, etc. | Current month |
+
+Accepts Danish month names (januar, februar, marts, april, maj, juni, juli, august, september, oktober, november, december) or YYYY-MM format.
+
+## Prerequisites
+- Transactions analyzed (categorized.csv and monthly-summary.csv have data)
+
+## Workflow
+
+1. Parse the `month` argument. If not provided, use the current month.
+2. Convert Danish month name to YYYY-MM format if needed (e.g., "januar" -> "2026-01" assuming current year)
+3. Read monthly-summary.csv, filtered to the target month
+4. If no data for the target month: "Ingen data for {month}. Kør /smartspender:analyze først."
+5. Read subscriptions.csv (filter to `status: active`)
+6. Calculate totals:
+   - Total spending (sum of all category totals, excluding Indkomst and Opsparing)
+   - Category percentages
+   - Subscription monthly total and annual total
+7. Format using the spending overview template from `skills/spending-analysis/SKILL.md`
+8. Generate savings recommendations:
+   - Check for duplicate streaming subscriptions
+   - Check for subscriptions with no recent usage signals
+   - Check for categories with significant month-over-month increases
+9. Present the formatted overview in Danish
+
+## Output
+
+```
+## {Month} {Year} — Overblik
+
+**Samlet forbrug**: {total} kr
+
+### Fordeling pr. kategori
+| Kategori | Beløb | Andel | Ændr. |
+|----------|-------|-------|-------|
+| Bolig | 12.000 kr | 42% | — |
+| Dagligvarer | 4.200 kr | 15% | +8% |
+| Transport | 2.100 kr | 7% | -12% |
+| Abonnementer | 1.847 kr | 6% | — |
+| Restauranter | 1.650 kr | 6% | +25% |
+| Shopping | 1.400 kr | 5% | — |
+| ... | ... | ... | ... |
+
+### Abonnementer ({count} aktive)
+| Tjeneste | Månedlig | Årlig | Status |
+|----------|----------|-------|--------|
+| Netflix | 149 kr | 1.788 kr | Aktiv |
+| Spotify Family | 179 kr | 2.148 kr | Aktiv |
+| Viaplay | 99 kr | 1.188 kr | Aktiv |
+| Fitness World | 299 kr | 3.588 kr | Aktiv |
+| ... | ... | ... | ... |
+**Total**: {total} kr/måned ({annual} kr/år)
+
+### Forslag til besparelser
+1. Opsig Viaplay — Spar 1.188 kr/år
+2. Overvej Adobe CC — 459 kr/måned virker højt
+3. Konsolider streaming? Netflix + HBO + Viaplay = 397 kr/måned
+```
+
+## Error Cases
+
+| Error | Message |
+|-------|---------|
+| No data for month | "Ingen data for {month}. Kør /smartspender:analyze først." |
+| No categorized data | "Ingen kategoriserede transaktioner fundet. Kør /smartspender:analyze først." |
+| Invalid month argument | "Ugyldigt månedsnavn: '{input}'. Brug f.eks. 'januar' eller '2026-01'." |
+
+## Side Effects
+None — this is a read-only command.
+
+## Related Commands
+- `/smartspender:analyze` — Run analysis before viewing overview
+- `/smartspender:report` — Get a more detailed monthly report
+- `/smartspender:subscriptions` — Focus on subscription details

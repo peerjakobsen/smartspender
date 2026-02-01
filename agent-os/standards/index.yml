@@ -1,0 +1,53 @@
+# Agent OS Standards Index — SmartSpender (Cowork Plugin)
+
+global:
+  conventions:
+    description: General conventions for developing the SmartSpender Cowork plugin — file-based architecture, version control, documentation, and quality standards.
+
+plugin:
+  structure:
+    description: Plugin directory structure standards — how files and directories should be organized within the Cowork plugin.
+  manifest:
+    description: Plugin manifest (plugin.json) conventions — required fields, versioning, and maintenance rules.
+  naming:
+    description: File, command, and identifier naming conventions — filenames, slash commands, bank IDs, categories, and sheet names.
+
+skills:
+  writing-skills:
+    description: How to write effective skill files — specificity, declarative knowledge, decision rules, and concrete examples.
+  skill-format:
+    description: Standard markdown format for skill files — required sections, optional sections, and a complete example.
+
+commands:
+  command-design:
+    description: Slash command design principles — single responsibility, predictable arguments, clear feedback, human-in-the-loop, and failure handling.
+  command-format:
+    description: Standard markdown format for command files — required sections, workflow steps, human handoff markers, and a complete example.
+
+bank-adapters:
+  adapter-structure:
+    description: How to structure bank adapters — directory layout, required files (BANK.md, export-format.md, quirks.md), and writing guidelines.
+  export-format:
+    description: How to document bank export formats — file properties, column mapping, transform rules, Danish number format, and encoding.
+
+browser-automation:
+  navigation:
+    description: Standards for browser navigation instructions — full URLs, wait strategies, element identification, page states, and error recovery.
+  javascript:
+    description: JavaScript execution standards for browser automation — iframe handling, event dispatching, async operations, and safety rules.
+  human-handoff:
+    description: Human-in-the-loop authentication patterns — handoff design, message templates, and rules for irreversible actions.
+
+data:
+  sheets-schema:
+    description: Google Sheets structure standards — spreadsheet naming, sheet naming, column conventions, deduplication, and MCP access patterns.
+  transaction-format:
+    description: Common transaction schema — field definitions, hash computation, date/amount/description normalization, and validation rules.
+  mcp-config:
+    description: MCP server configuration standards — .mcp.json structure, environment variables, credentials security, and troubleshooting.
+
+content:
+  danish-content:
+    description: Danish language and terminology standards — character encoding, category names, merchant normalization, banking terms, and currency formatting.
+  markdown-style:
+    description: Markdown formatting conventions — headings, lists, tables, code blocks, emphasis, and file structure patterns.

@@ -1,0 +1,18 @@
+# Credentials and secrets
+credentials.json
+*.credentials.json
+.env
+.env.*
+
+# Downloaded bank exports
+*.csv
+
+# Plugin distribution archives
+smartspender.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude Code cache
+.claude/skills/ui-ux-pro-max/scripts/__pycache__/
