@@ -23,6 +23,75 @@ For a given month, aggregate all categorized transactions:
 
 Write results to monthly-summary.csv.
 
+## Receipt-Level Breakdown
+
+For a given merchant, aggregate spending at the receipt-item level instead of the transaction level. Used when the user asks about spending at a specific merchant (e.g., "Hvad bruger jeg hos Bilka?").
+
+### Data Source
+
+1. Read `receipts.csv`, filter by `merchant` (case-insensitive match against normalized merchant name per `skills/categorization/SKILL.md`)
+2. If `month` argument is provided, also filter by `date` column (YYYY-MM prefix match)
+3. Collect all matching `receipt_id` values
+4. Read `receipt-items.csv`, filter to rows where `receipt_id` is in the collected set
+
+### Aggregation Rules
+
+Group matching receipt items by `subcategory`:
+
+1. For each subcategory, compute:
+   - `total`: Sum of `total_price` for all items in that subcategory
+   - `item_count`: Sum of `quantity` for all items in that subcategory
+   - `avg_price`: `total / item_count`
+2. Calculate each subcategory's percentage of total merchant spending: `subcategory_total / merchant_total × 100`
+3. Sort subcategories by total (highest first)
+
+### Top Items per Subcategory
+
+For each subcategory, identify the top 3 most purchased individual items:
+
+1. Group items by `item_name` within the subcategory
+2. For each item, compute:
+   - `purchase_count`: Sum of `quantity` across all receipts
+   - `item_total`: Sum of `total_price` across all receipts
+3. Sort by `purchase_count` (highest first), break ties by `item_total`
+4. Return top 3
+
+### Overall Top Items
+
+Across all subcategories, identify the top 3 most frequently purchased items using the same logic as above but without the subcategory grouping.
+
+### Multi-Month Handling
+
+- **Month specified**: Show totals for that month only. Header: `{Merchant} — Indkøbsoversigt {month_name} {year}`
+- **No month specified**: Show all-time totals plus a per-month average. Header: `{Merchant} — Indkøbsoversigt samlet`
+  - Per-month average: `total / number_of_distinct_months` (count distinct YYYY-MM values from matching receipts)
+
+### Output Format: Merchant Breakdown
+
+```
+## {Merchant} — Indkøbsoversigt {month or "samlet"}
+
+**Antal kvitteringer**: {count}
+**Samlet forbrug**: {total} kr
+
+### Fordeling pr. varekategori
+| Kategori | Beløb | Andel | Antal varer |
+|----------|-------|-------|-------------|
+| {subcategory} | {amount} kr | {pct}% | {item_count} |
+| ... | ... | ... | ... |
+
+### Hyppigst købte varer
+1. {item_name} — {count}x — {total} kr
+2. {item_name} — {count}x — {total} kr
+3. {item_name} — {count}x — {total} kr
+```
+
+If no month is specified, append a summary line after the table:
+
+```
+**Gennemsnit pr. måned**: {avg} kr ({month_count} måneder)
+```
+
 ## Month-Over-Month Comparison
 
 Compare the current month's spending to the previous month:

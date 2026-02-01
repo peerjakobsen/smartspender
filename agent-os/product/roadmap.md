@@ -106,6 +106,69 @@ invoice-knowledge/
 
 **Command: `/smartspender:receipt learn`** -- Save current conversation's learnings to parser file
 
+### Phase 3e: Enable Banking Integration
+
+Alternative sync path using Open Banking APIs instead of browser automation. Enables multi-bank support with a single integration.
+
+**Why Enable Banking:**
+- **Speed** -- Direct API calls vs slow browser automation
+- **Stability** -- Versioned API vs brittle UI scraping
+- **Multi-bank** -- One integration covers 2,500+ European banks including all major Danish banks
+- **Standardized data** -- ISO 20022 transaction codes, structured creditor/debtor fields
+- **Free for personal use** -- Restricted production mode allows linking your own accounts
+
+**Architecture:**
+```
+banks/
+├── nykredit/           # Existing browser automation adapter
+│   └── ADAPTER.md
+├── enable-banking/     # New API-based adapter
+│   ├── ADAPTER.md
+│   ├── auth/           # Session tokens, consent management
+│   └── mappings/       # Bank-specific field mappings if needed
+└── _template/
+    └── ADAPTER.md
+```
+
+**Account Type in `/smartspender:add-account`:**
+- `nykredit` -- Browser automation (existing)
+- `enable-banking` -- Open Banking API (new, supports multiple banks)
+
+**Enable Banking Transaction Structure:**
+```json
+{
+  "bank_transaction_code": { "code": "12", "description": "Kortbetaling" },
+  "booking_date": "2024-01-15",
+  "credit_debit_indicator": "DBIT",
+  "creditor": { "name": "FØTEX" },
+  "entry_reference": "5561990681",
+  "remittance_information": ["Dankort-køb"],
+  "transaction_amount": { "amount": "847.50", "currency": "DKK" }
+}
+```
+
+**Setup Flow:**
+1. User signs up at enablebanking.com (free)
+2. Creates restricted production app
+3. Links own bank accounts via MitID
+4. Stores API credentials in SmartSpender config
+5. Consent valid for 90-180 days (PSD2 requirement)
+
+**Supported Danish Banks (via Enable Banking):**
+- Nykredit, Danske Bank, Nordea, Jyske Bank
+- Sydbank, Spar Nord, Arbejdernes Landsbank
+- Lunar, Bank Norwegian
+- Plus 50+ smaller Danish banks through BEC/Bankdata
+
+**Trade-offs vs Browser Automation:**
+| Aspect | Browser Automation | Enable Banking |
+|--------|-------------------|----------------|
+| Initial setup | Simpler | Requires Enable Banking account |
+| Auth frequency | Every sync | Every 90-180 days |
+| Speed | Slow (30-60s) | Fast (<5s) |
+| Reliability | Breaks if UI changes | Stable API |
+| Bank coverage | One adapter per bank | All banks, one adapter |
+
 ### Data Architecture: ReceiptItems Sheet
 | Column | Type | Description |
 |--------|------|-------------|

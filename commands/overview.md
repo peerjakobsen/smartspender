@@ -6,40 +6,70 @@ description: Show spending summary with category breakdown and savings suggestio
 
 ## Trigger
 - `/smartspender:overview [month]`
+- `/smartspender:overview [merchant] [month]`
 - "Vis mit forbrugsoverblik"
 - "Hvordan ser mit forbrug ud?"
 - "Show my spending overview"
+- "Hvad bruger jeg hos {merchant}"
+- "Fortæl mig hvad jeg bruger hos {merchant}"
+- "{merchant} forbrug"
+- "{merchant} breakdown"
 
 ## Arguments
 
 | Argument | Required | Values | Default |
 |----------|----------|--------|---------|
-| month | no | januar, februar, ..., 2026-01, etc. | Current month |
+| merchant | no | Merchant name (e.g., Bilka, Føtex, Netto) | none |
+| month | no | januar, februar, ..., 2026-01, etc. | Current month (or all-time if merchant is set) |
 
 Accepts Danish month names (januar, februar, marts, april, maj, juni, juli, august, september, oktober, november, december) or YYYY-MM format.
 
+When `merchant` is provided, the command switches to receipt-level breakdown mode. The `month` argument becomes optional (defaults to all-time when used with merchant).
+
 ## Prerequisites
-- Transactions analyzed (categorized.csv and monthly-summary.csv have data)
+- **Standard overview**: Transactions analyzed (categorized.csv and monthly-summary.csv have data)
+- **Merchant breakdown**: At least one receipt in receipts.csv for the specified merchant
 
 ## Workflow
 
-1. Parse the `month` argument. If not provided, use the current month.
+1. Parse arguments. Determine if a `merchant` argument is present.
 2. Convert Danish month name to YYYY-MM format if needed (e.g., "januar" -> "2026-01" assuming current year)
-3. Read monthly-summary.csv, filtered to the target month
-4. If no data for the target month: "Ingen data for {month}. Kør /smartspender:analyze først."
-5. Read subscriptions.csv (filter to `status: active`)
-6. Calculate totals:
+
+### Standard Overview (no merchant)
+
+3. If no `month` provided, use the current month.
+4. Read monthly-summary.csv, filtered to the target month
+5. If no data for the target month: "Ingen data for {month}. Kør /smartspender:analyze først."
+6. Read subscriptions.csv (filter to `status: active`)
+7. Calculate totals:
    - Total spending (sum of all category totals, excluding Indkomst and Opsparing)
    - Category percentages
    - Subscription monthly total and annual total
-7. Format using the spending overview template from `skills/spending-analysis/SKILL.md`
-8. Generate savings recommendations:
+8. Format using the spending overview template from `skills/spending-analysis/SKILL.md`
+9. Generate savings recommendations:
    - Check for duplicate streaming subscriptions
    - Check for subscriptions with no recent usage signals
    - Check for categories with significant month-over-month increases
-9. Present the formatted overview in Danish
+10. Present the formatted overview in Danish
+
+### Merchant Breakdown (merchant provided)
+
+3. Normalize the merchant name using rules from `skills/categorization/SKILL.md` (case-insensitive matching against known merchant patterns)
+4. Read `receipts.csv`, filter by normalized merchant name (case-insensitive match on `merchant` column)
+5. If `month` argument is provided, further filter receipts by `date` column (YYYY-MM prefix match). If no month, use all receipts for this merchant.
+6. If no receipts match: "Ingen kvitteringer fundet for {merchant}. Upload en kvittering med `/smartspender:receipt upload`."
+7. Collect all matching `receipt_id` values
+8. Read `receipt-items.csv`, filter to rows where `receipt_id` is in the collected set
+9. Aggregate by `subcategory` per Receipt-Level Breakdown rules in `skills/spending-analysis/SKILL.md`:
+   - Group by subcategory, compute total, percentage, item count
+   - Sort by total (highest first)
+   - Identify top 3 most purchased items overall
+10. Format using the merchant breakdown output template (see below)
+11. Present the formatted breakdown in Danish
 
 ## Output
+
+### Standard Overview
 
 ```
 ## {Month} {Year} — Overblik
@@ -73,6 +103,36 @@ Accepts Danish month names (januar, februar, marts, april, maj, juni, juli, augu
 3. Konsolider streaming? Netflix + HBO + Viaplay = 397 kr/måned
 ```
 
+### Merchant Breakdown
+
+```
+## {Merchant} — Indkøbsoversigt {month or "samlet"}
+
+**Antal kvitteringer**: {count}
+**Samlet forbrug**: {total} kr
+
+### Fordeling pr. varekategori
+| Kategori | Beløb | Andel | Antal varer |
+|----------|-------|-------|-------------|
+| Alkohol | 480 kr | 24% | 6 |
+| Kød | 360 kr | 18% | 8 |
+| Mejeriprodukter | 300 kr | 15% | 12 |
+| Frugt og grønt | 240 kr | 12% | 9 |
+| Drikkevarer | 200 kr | 10% | 5 |
+| ... | ... | ... | ... |
+
+### Hyppigst købte varer
+1. Minimælk 1L — {count}x — {total} kr
+2. Hakket oksekød 500g — {count}x — {total} kr
+3. Øko bananer — {count}x — {total} kr
+```
+
+When showing all-time totals (no month specified), append after the table:
+
+```
+**Gennemsnit pr. måned**: {avg} kr ({month_count} måneder)
+```
+
 ## Error Cases
 
 | Error | Message |
@@ -80,6 +140,7 @@ Accepts Danish month names (januar, februar, marts, april, maj, juni, juli, augu
 | No data for month | "Ingen data for {month}. Kør /smartspender:analyze først." |
 | No categorized data | "Ingen kategoriserede transaktioner fundet. Kør /smartspender:analyze først." |
 | Invalid month argument | "Ugyldigt månedsnavn: '{input}'. Brug f.eks. 'januar' eller '2026-01'." |
+| No receipts for merchant | "Ingen kvitteringer fundet for {merchant}. Upload en kvittering med `/smartspender:receipt upload`." |
 
 ## Side Effects
 None — this is a read-only command.
@@ -88,3 +149,4 @@ None — this is a read-only command.
 - `/smartspender:analyze` — Run analysis before viewing overview
 - `/smartspender:report` — Get a more detailed monthly report
 - `/smartspender:subscriptions` — Focus on subscription details
+- `/smartspender:receipt upload` — Upload receipts for merchant-level breakdown
