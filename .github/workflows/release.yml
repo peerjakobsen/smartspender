@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'agent-os/**'
+      - 'README.md'
+      - 'LEARNINGS.md'
+      - 'CLAUDE.md'
+      - 'LICENSE'
+      - '.gitignore'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' .claude-plugin/plugin.json)
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Create zip
+        run: zip -r smartspender.zip .claude-plugin/ commands/ skills/ banks/ subscriptions/
+
+      - name: Delete existing release
+        run: gh release delete "${{ steps.version.outputs.tag }}" --cleanup-tag --yes || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            smartspender.zip \
+            --title "SmartSpender ${{ steps.version.outputs.tag }}" \
+            --generate-notes \
+            --latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
