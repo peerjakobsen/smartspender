@@ -26,12 +26,17 @@ description: Upload and process receipt images or PDF invoices, extract line ite
 2. **[USER ACTION]**: User attaches a receipt image or PDF invoice
 3. If no file is attached, respond: "Jeg kan ikke se nogen kvittering. Indsaet venligst et billede eller en PDF."
 4. Load extraction rules: `skills/receipt-parsing/SKILL.md`
-5. Extract receipt metadata using Claude Vision:
+5. Load invoice-parsing skill: `skills/invoice-parsing/SKILL.md`
+6. Detect vendor from the uploaded file (filename, header/logo, content keywords) per the invoice-parsing skill's vendor detection workflow
+7. If vendor detected: check for `invoice-knowledge/{vendor-id}/PARSER.md`
+   - If parser exists: load vendor-specific extraction rules and use them for steps 8-11
+   - If no parser: continue with general extraction rules from receipt-parsing skill
+8. Extract receipt metadata using Claude Vision:
    - Merchant name (normalize per `skills/categorization/SKILL.md`)
    - Date (convert to YYYY-MM-DD)
    - Total amount (convert to standard decimal format)
    - Currency (default DKK)
-6. Present extraction summary to user for confirmation:
+9. Present extraction summary to user for confirmation:
    ```
    Jeg aflæste følgende fra kvitteringen:
 
@@ -41,22 +46,22 @@ description: Upload and process receipt images or PDF invoices, extract line ite
 
    Er det korrekt? (Eller ret de felter der er forkerte)
    ```
-7. **[USER ACTION]**: User confirms or provides corrections
-8. Apply any corrections from the user
-9. Extract line items from the receipt:
-   - Item name, quantity, unit price, total price
-   - Assign category and subcategory per `skills/receipt-parsing/SKILL.md` product taxonomy
-   - Handle discounts (RABAT lines)
-10. Validate line item sum against receipt total (per variance rules in receipt-parsing skill)
-11. Load schema: `skills/receipt-schema/SKILL.md`
-12. Check for duplicate receipts in receipts.csv (same date + merchant + total_amount). If duplicate found, ask: "Denne kvittering ligner en der allerede er registreret ({receipt_id} fra {date}). Vil du tilfoeje den alligevel?"
-13. **[USER ACTION]** (only if duplicate): User confirms or cancels
-14. If user cancels on duplicate, stop and output: "Kvitteringen blev ikke tilfojet."
-15. Load matching rules: `skills/transaction-matching/SKILL.md`
-16. Search transactions.csv for matching transactions (amount +-1%, date +-1 day)
-17. Score candidates per transaction-matching confidence rules
-18. If exactly 1 match with confidence >= 0.8: auto-link to the transaction
-19. If multiple candidates or confidence < 0.8: present candidates to user:
+10. **[USER ACTION]**: User confirms or provides corrections
+11. Apply any corrections from the user
+12. Extract line items from the receipt:
+    - Item name, quantity, unit price, total price
+    - Assign category and subcategory per `skills/receipt-parsing/SKILL.md` product taxonomy (or vendor-specific PARSER.md if loaded in step 7)
+    - Handle discounts (RABAT lines)
+13. Validate line item sum against receipt total (per variance rules in receipt-parsing skill)
+14. Load schema: `skills/receipt-schema/SKILL.md`
+15. Check for duplicate receipts in receipts.csv (same date + merchant + total_amount). If duplicate found, ask: "Denne kvittering ligner en der allerede er registreret ({receipt_id} fra {date}). Vil du tilfoeje den alligevel?"
+16. **[USER ACTION]** (only if duplicate): User confirms or cancels
+17. If user cancels on duplicate, stop and output: "Kvitteringen blev ikke tilfojet."
+18. Load matching rules: `skills/transaction-matching/SKILL.md`
+19. Search transactions.csv for matching transactions (amount +-1%, date +-1 day)
+20. Score candidates per transaction-matching confidence rules
+21. If exactly 1 match with confidence >= 0.8: auto-link to the transaction
+22. If multiple candidates or confidence < 0.8: present candidates to user:
     ```
     Jeg fandt {n} mulige transaktioner til denne kvittering:
 
@@ -65,21 +70,22 @@ description: Upload and process receipt images or PDF invoices, extract line ite
 
     Hvilken transaktion hører kvitteringen til? (Eller "ingen" hvis ingen passer)
     ```
-20. **[USER ACTION]** (only if ambiguous): User picks a candidate or says "ingen"
-21. If no candidates found: store as unmatched
-22. Generate receipt_id (`rcpt-` + 8 hex chars) and item_ids (`ritm-` + 8 hex chars per item)
-23. Create the `receipts/` directory if it does not exist
-24. Save the uploaded file to `receipts/{receipt_id}.{ext}` (preserve original extension). Set `file_reference` to this path.
-25. If receipts.csv does not exist, create it with the header row
-26. Append receipt row to receipts.csv
-27. If receipt-items.csv does not exist, create it with the header row
-28. Append all item rows to receipt-items.csv
-29. Append event to action-log.csv:
+23. **[USER ACTION]** (only if ambiguous): User picks a candidate or says "ingen"
+24. If no candidates found: store as unmatched
+25. Generate receipt_id (`rcpt-` + 8 hex chars) and item_ids (`ritm-` + 8 hex chars per item)
+26. Create the `receipts/` directory if it does not exist
+27. Save the uploaded file to `receipts/{receipt_id}.{ext}` (preserve original extension). Set `file_reference` to this path.
+28. If receipts.csv does not exist, create it with the header row
+29. Append receipt row to receipts.csv
+30. If receipt-items.csv does not exist, create it with the header row
+31. Append all item rows to receipt-items.csv
+32. Append event to action-log.csv:
     - `action_type`: receipt
     - `target`: {merchant}
     - `status`: completed
     - `details`: "{item_count} items, {match_status} to {transaction_description or 'no transaction'}"
-30. Output summary in Danish
+33. Output summary in Danish
+34. If the receipt was a PDF invoice without a vendor-specific parser and the user made corrections, suggest: "Tip: Koer /smartspender:receipt learn for at gemme udtraeksregler for {vendor}."
 
 ## Output
 
@@ -154,3 +160,5 @@ Ingen varelinjer fundet — kun totalen er registreret.
 ## Related Commands
 - `/smartspender:sync` — Sync transactions before uploading receipts for matching
 - `/smartspender:analyze` — Categorize transactions (receipt data adds granularity)
+- `/smartspender:receipt learn` — Save vendor-specific extraction rules after corrections
+- `/smartspender:receipt email` — Scan Gmail for receipt and invoice emails

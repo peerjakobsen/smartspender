@@ -93,6 +93,10 @@ After extracting all items, compare the sum of line totals against the receipt t
 
 ## PDF Invoice Extraction
 
+### Vendor-Specific Parsers
+
+Before using the general rules below, check `skills/invoice-parsing/SKILL.md` for vendor-specific parsers. If a parser exists in `invoice-knowledge/{vendor-id}/PARSER.md`, use those vendor-specific extraction rules instead — they are more accurate for known vendors.
+
 ### Structure Recognition
 
 Danish PDF invoices typically contain:
@@ -229,7 +233,7 @@ merchant: Foetex
 date: 2026-01-28
 total: 347.50
 currency: DKK
-source: upload
+source: upload  # or "email" if imported via /smartspender:receipt email
 ```
 
 **Extracted items**:
@@ -256,7 +260,7 @@ merchant: TDC
 date: 2026-01-15
 total: 299.00
 currency: DKK
-source: upload
+source: upload  # or "email" if imported via /smartspender:receipt email
 ```
 
 **Extracted items**:
