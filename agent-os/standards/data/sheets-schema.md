@@ -44,7 +44,9 @@ Every data sheet (Transactions, Categorized, Subscriptions) must have:
 
 - The `tx_hash` column in Transactions prevents duplicate imports
 - Before appending new rows, always check for existing tx_hash values
-- Hash is computed from: date (YYYY-MM-DD) + amount (2 decimal places) + raw_text (trimmed, lowercased)
+- Hash is computed from: account + date (YYYY-MM-DD) + amount (2 decimal places) + saldo (2 decimal places)
+- Fallback (if bank has no running balance): account + date + amount + raw_text (trimmed, lowercased)
+- See `agent-os/standards/data/transaction-format.md` for the full formula
 
 ## Sheet Relationships
 

@@ -25,7 +25,7 @@ tx_id,tx_hash,date,amount,currency,description,raw_text,bank,account,synced_at
 | Column | Type | Description |
 |--------|------|-------------|
 | tx_id | string | Unique transaction ID (UUID) |
-| tx_hash | string | Deduplication hash (`"{date}\|{amount}\|{raw_text_normalized}"`) |
+| tx_hash | string | Deduplication hash (`"{account}\|{date}\|{amount}\|{saldo}"`) |
 | date | date | Transaction date (YYYY-MM-DD) |
 | amount | number | Amount with sign (negative = expense) |
 | currency | string | ISO currency code (DKK) |

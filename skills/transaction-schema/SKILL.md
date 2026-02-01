@@ -26,25 +26,37 @@ Defines the common data format for all transactions in SmartSpender. Every bank 
 
 ## Hash Computation
 
-The `tx_hash` prevents duplicate imports across multiple sync runs. Compute it as:
+The `tx_hash` prevents duplicate imports across multiple sync runs.
+
+### Primary formula (when bank provides running balance)
 
 ```
-"{date}|{amount}|{raw_text_normalized}"
+"{account}|{date}|{amount}|{saldo}"
 ```
 
 Where:
+- `account` is the account identifier from the bank export (e.g., `54740001351377`)
 - `date` is in YYYY-MM-DD format
-- `amount` is formatted to exactly 2 decimal places (e.g., `-149.00`)
-- `raw_text_normalized` is the raw_text trimmed of whitespace and lowercased
+- `amount` is formatted to exactly 2 decimal places (e.g., `-55.00`)
+- `saldo` is the running balance after the transaction, formatted to exactly 2 decimal places (e.g., `927.83`)
 
-**Example**: `"2026-01-15|-149.00|netflix.com"`
+The running balance is a natural disambiguator — even two identical purchases at the same merchant on the same day produce different balances.
+
+### Fallback formula (when bank does not provide running balance)
+
+```
+"{account}|{date}|{amount}|{raw_text_normalized}"
+```
+
+Where:
+- `raw_text_normalized` is the raw_text trimmed of whitespace and lowercased
 
 Before appending any row to transactions.csv, check whether a row with the same `tx_hash` already exists. If it does, skip the row.
 
 ## Transformation Rules
 
 ### Date Normalization
-- Bank exports use various formats: DD/MM/YYYY (Nykredit), DD-MM-YYYY (others)
+- Bank exports use various formats: DD-MM-YYYY (Nykredit), DD/MM/YYYY (others)
 - Always convert to: **YYYY-MM-DD**
 - Reject any date in the future — this likely indicates a parsing error
 
@@ -58,7 +70,7 @@ Before appending any row to transactions.csv, check whether a row with the same 
 ### Description Cleaning
 - Trim leading and trailing whitespace
 - Collapse multiple consecutive spaces into one
-- Preserve bank-specific prefixes that indicate payment method (e.g., `Dankort-køb` indicates card payment)
+- Preserve bank-specific prefixes that indicate payment method (e.g., `Debitcard DK` indicates card payment)
 - Store the original unmodified text in `raw_text`
 - Store the cleaned version in `description`
 
@@ -81,41 +93,41 @@ If validation fails, log the issue but do not halt the entire sync — skip the 
 ### Nykredit Card Payment
 ```
 tx_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-tx_hash: "2026-01-15|-149.00|netflix.com"
-date: 2026-01-15
-amount: -149.00
+tx_hash: "54740001351377|2025-11-03|-5.00|828.69"
+date: 2025-11-03
+amount: -5.00
 currency: DKK
-description: Netflix
-raw_text: "NETFLIX.COM"
+description: Debitcard DK Normal Frederiksberg
+raw_text: "Debitcard DK NORMAL FREDERIK"
 bank: nykredit
-account: "1234-1234567"
+account: "54740001351377"
 synced_at: 2026-02-01 10:30:00
 ```
 
-### Nykredit Salary Deposit
+### Nykredit Incoming Transfer
 ```
 tx_id: "b2c3d4e5-f6a7-8901-bcde-f12345678901"
-tx_hash: "2026-01-31|32500.00|loen fra arbejdsgiver aps"
-date: 2026-01-31
-amount: 32500.00
+tx_hash: "54740001351377|2025-11-03|300.00|1128.69"
+date: 2025-11-03
+amount: 300.00
 currency: DKK
-description: Løn fra Arbejdsgiver ApS
-raw_text: "Løn fra Arbejdsgiver ApS"
+description: Fra Konto
+raw_text: "Fra Konto"
 bank: nykredit
-account: "1234-1234567"
+account: "54740001351377"
 synced_at: 2026-02-01 10:30:00
 ```
 
-### Nykredit Grocery Purchase
+### Nykredit Bank Fee
 ```
 tx_id: "c3d4e5f6-a7b8-9012-cdef-123456789012"
-tx_hash: "2026-01-20|-347.50|netto fo 1234 koebenhavn"
-date: 2026-01-20
-amount: -347.50
+tx_hash: "54740001351377|2026-01-30|-55.00|927.83"
+date: 2026-01-30
+amount: -55.00
 currency: DKK
-description: Netto
-raw_text: "NETTO FO 1234 KØBENHAVN"
+description: Kontoudskrift
+raw_text: "Kontoudskrift"
 bank: nykredit
-account: "1234-1234567"
+account: "54740001351377"
 synced_at: 2026-02-01 10:30:00
 ```

@@ -74,6 +74,7 @@ banks/{bank-id}/
 | {column} | amount | {conversion rules} |
 | {column} | raw_text | Direct |
 | {column} | account | Direct |
+| {balance column} | (dedup) | Running balance -- used for tx_hash computation |
 | {column} | (ignore) | - |
 
 ## Sample Row

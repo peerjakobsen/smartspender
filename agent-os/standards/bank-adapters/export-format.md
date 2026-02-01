@@ -31,11 +31,12 @@ Map every column from the bank's export to the common transaction schema:
 | Beloeb | amount | Direct (already period decimal) |
 | Tekst | raw_text | Direct |
 | Exportkonto | account | Direct |
-| Saldo | (ignore) | Not needed |
+| Saldo | (dedup) | Running balance -- used for tx_hash computation |
 ```
 
 Use these values in the "Common Field" column:
 - `date`, `amount`, `currency`, `description`, `raw_text`, `bank`, `account` -- mapped fields
+- `(dedup)` -- used for tx_hash computation (e.g., running balance / saldo)
 - `(metadata)` -- useful context but not in the core schema
 - `(ignore)` -- not needed
 
@@ -65,14 +66,16 @@ Danish characters (æ, ø, å, Æ, Ø, Å) require correct encoding. If the enco
 
 Always verify encoding by checking that Danish characters render correctly after parsing.
 
-## Example: Nykredit with SmartSpender Preset
+## Example: Nykredit Export
 
 ```
-Exportkonto,Afsenderkonto,Modtagerkonto,Dato,Tekst,Beloeb,Saldo,Indbetaler,Supp. tekst til modtager,Tekst til modtager
-1234-1234567,,,15/01/2026,NETFLIX.COM,-149.00,12345.67,,,
+"Exportkonto";"Afsenderkonto";"Modtagerkonto";"Dato";"Tekst";"Beløb";"Saldo";...
+"54740001351377";"54740001351377";"";03-11-2025;"Debitcard DK NORMAL FREDERIK";-5.00; 828.69;...
 ```
 
-- Delimiter: comma (preset selects "Kommasepareret")
+- Delimiter: semicolon
 - Decimal: period (preset enables "Konverter decimaltegn til punktum")
-- Encoding: UTF-8
-- Header: yes (preset enables "Medtag kolonneoverskrifter")
+- Encoding: Windows-1252 (convert to UTF-8 before processing)
+- Date format: DD-MM-YYYY (dashes)
+- Header: yes
+- Saldo column: used for tx_hash computation (mapped as `(dedup)`)

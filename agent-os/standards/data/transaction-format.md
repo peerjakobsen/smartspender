@@ -21,23 +21,46 @@ All bank adapters normalize transactions into a common format before storing in 
 
 ## Hash Computation
 
-The `tx_hash` prevents duplicate imports. Compute it as:
+The `tx_hash` prevents duplicate imports across multiple sync runs. Compute it as:
+
+### Primary formula (when bank provides running balance)
 
 ```
-hash_input = "{date}|{amount}|{raw_text_normalized}"
+hash_input = "{account}|{date}|{amount}|{saldo}"
 ```
 
 Where:
+- `account` is the account identifier from the bank export (e.g., `54740001351377`)
 - `date` is in YYYY-MM-DD format
-- `amount` is formatted to exactly 2 decimal places (e.g., "-149.00")
+- `amount` is formatted to exactly 2 decimal places (e.g., `-55.00`)
+- `saldo` is the running balance after the transaction, formatted to exactly 2 decimal places (e.g., `927.83`)
+
+**Example** (Nykredit bank fee):
+`"54740001351377|2026-01-30|-55.00|927.83"`
+
+The running balance is a natural disambiguator — even two identical purchases at the same merchant on the same day produce different balances.
+
+### Fallback formula (when bank does not provide running balance)
+
+```
+hash_input = "{account}|{date}|{amount}|{raw_text_normalized}"
+```
+
+Where:
 - `raw_text_normalized` is the raw_text trimmed and lowercased
 
-Example: `"2026-01-15|-149.00|netflix.com"`
+**Example**: `"54740001351377|2026-01-15|-149.00|netflix.com"`
+
+### Why account and saldo?
+
+- `account` prevents cross-account collisions (e.g., identical fees on two accounts on the same day)
+- `saldo` prevents same-merchant-same-day collisions (e.g., two coffees at Starbucks for the same amount — the balance after each differs)
+- Saldo is standard in Danish bank CSV exports
 
 ## Transformation Rules
 
 ### Date Normalization
-- Input varies by bank: DD/MM/YYYY (Nykredit), DD-MM-YYYY (others)
+- Input varies by bank: DD-MM-YYYY (Nykredit), DD/MM/YYYY (others)
 - Output always: YYYY-MM-DD
 - Reject dates in the future (likely parsing error)
 

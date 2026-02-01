@@ -43,7 +43,8 @@ description: Sync transactions from your bank account via CSV export
     - Convert dates to YYYY-MM-DD
     - Normalize amounts
     - Clean descriptions
-    - Generate tx_hash for each transaction
+    - Extract the Saldo (running balance) from the CSV — it is needed for tx_hash computation even though it is not stored as a separate column in transactions.csv
+    - Generate tx_hash for each transaction: `"{account}|{date}|{amount}|{saldo}"`
 16. Read existing transactions.csv (if it exists) and extract all `tx_hash` values
 17. If transactions.csv doesn't exist, create it with the header row
 18. Filter out transactions whose `tx_hash` already exists (deduplication)

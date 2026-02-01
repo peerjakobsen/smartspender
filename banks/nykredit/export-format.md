@@ -72,7 +72,7 @@
 | Tekst til modtager | (metadata) | Transfer description |
 | Overført beløb | (metadata) | Absolute transaction amount (always positive) |
 | Valuta | (metadata) | Currency code |
-| Saldo | (ignore) | Balance -- not stored in common schema |
+| Saldo | (dedup) | Running balance after transaction -- used for tx_hash computation. Trim whitespace, format to 2 decimal places. |
 
 ## Parsing Rules
 
