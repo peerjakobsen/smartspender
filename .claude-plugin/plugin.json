@@ -3,6 +3,18 @@
   "version": "1.5.0",
   "description": "Personal finance management for Danish bank customers. Sync transactions, analyze spending, detect subscriptions, and take action.",
   "author": {
-    "name": "Peer Jakobsen"
-  }
+    "name": "Peer Jakobsen",
+    "url": "https://github.com/peerjakobsen"
+  },
+  "repository": "https://github.com/peerjakobsen/SmartSpender",
+  "license": "MIT",
+  "keywords": [
+    "personal-finance",
+    "danish-banking",
+    "spending-analysis",
+    "subscriptions",
+    "budget",
+    "receipts",
+    "csv"
+  ]
 }
