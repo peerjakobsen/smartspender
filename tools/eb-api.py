@@ -97,7 +97,8 @@ def make_jwt(config):
         'exp': now + 3600,
         'app_id': config['app_id']
     }
-    return jwt.encode(payload, private_key, algorithm='PS256')
+    headers = {'kid': config['app_id']}
+    return jwt.encode(payload, private_key, algorithm='RS256', headers=headers)
 
 
 def api_request(method, path, config, params=None, body=None):
