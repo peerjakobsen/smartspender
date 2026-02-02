@@ -190,3 +190,17 @@ banks/
 - Utility consumption trends (electricity, water, heating over time)
 - Impulse purchase detection (items near checkout, small add-ons)
 - Brand loyalty analysis (where you spend most per category)
+
+## Phase 4: Cost Optimization
+
+### Phase 4a: Subscription Negotiation
+- Negotiation email drafts with competitor research
+- Danish consumer rights and negotiation tactics knowledge
+- Command: `/smartspender:negotiate [service]`
+
+### Future Phase 4 Features
+- Price tracking over time
+- Bulk negotiation suggestions
+- Negotiation outcome tracking
+- Phone script generation
+- Automatic follow-up reminders
