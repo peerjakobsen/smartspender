@@ -77,15 +77,16 @@ description: Upload and process receipt images or PDF invoices, extract line ite
 27. Save the uploaded file to `receipts/{receipt_id}.{ext}` (preserve original extension). Set `file_reference` to this path.
 28. If receipts.csv does not exist, create it with the header row
 29. Append receipt row to receipts.csv
-30. If receipt-items.csv does not exist, create it with the header row
-31. Append all item rows to receipt-items.csv
-32. Append event to action-log.csv:
+30. Determine the monthly file from the receipt date: `receipt-items-{YYYY-MM}.csv` (e.g., receipt date 2026-01-28 → `receipt-items-2026-01.csv`)
+31. If the monthly file does not exist, create it with the header row
+32. Append all item rows to `receipt-items-{YYYY-MM}.csv`
+33. Append event to action-log.csv:
     - `action_type`: receipt
     - `target`: {merchant}
     - `status`: completed
     - `details`: "{item_count} items, {match_status} to {transaction_description or 'no transaction'}"
-33. Output summary in Danish
-34. If the receipt was a PDF invoice without a vendor-specific parser and the user made corrections, suggest: "Tip: Koer /smartspender:receipt learn for at gemme udtraeksregler for {vendor}."
+34. Output summary in Danish
+35. If the receipt was a PDF invoice without a vendor-specific parser and the user made corrections, suggest: "Tip: Koer /smartspender:receipt learn for at gemme udtraeksregler for {vendor}."
 
 ## Output
 
@@ -154,7 +155,7 @@ Ingen varelinjer fundet — kun totalen er registreret.
 ## Side Effects
 - Saves receipt file to `receipts/` directory
 - Writes to receipts.csv (new row)
-- Writes to receipt-items.csv (new rows)
+- Writes to `receipt-items-{YYYY-MM}.csv` (new rows)
 - Writes to action-log.csv (receipt event)
 
 ## Related Commands

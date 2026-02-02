@@ -212,7 +212,7 @@ If the receipt is not in Danish:
 ### Receipts Without Line Items
 Some receipts only show a total (e.g., card terminal slips):
 1. Create the receipts.csv row with item_count = 0
-2. Skip receipt-items.csv
+2. Skip writing to receipt-items files (don't create an empty monthly file)
 3. Inform user: "Denne kvittering har kun en total — ingen varelinjer fundet."
 
 ### Negative Items (Returns)

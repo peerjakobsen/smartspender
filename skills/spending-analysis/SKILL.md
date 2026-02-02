@@ -31,8 +31,10 @@ For a given merchant, aggregate spending at the receipt-item level instead of th
 
 1. Read `receipts.csv`, filter by `merchant` (case-insensitive match against normalized merchant name per `skills/categorization/SKILL.md`)
 2. If `month` argument is provided, also filter by `date` column (YYYY-MM prefix match)
-3. Collect all matching `receipt_id` values
-4. Read `receipt-items.csv`, filter to rows where `receipt_id` is in the collected set
+3. Collect all matching `receipt_id` values and their `date` values
+4. Determine which monthly files to read: extract unique YYYY-MM values from the receipt dates
+5. For each monthly file `receipt-items-{YYYY-MM}.csv`: read it if it exists, filter to rows where `receipt_id` is in the collected set. Skip missing files.
+6. Combine all matching rows
 
 ### Aggregation Rules
 

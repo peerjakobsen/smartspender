@@ -7,7 +7,7 @@ description: Data structure for receipt and invoice storage. Reference this when
 
 ## Purpose
 
-Defines the CSV file structure for storing receipt metadata and line-item detail. Two files work together: `receipts.csv` holds one row per receipt with match status; `receipt-items.csv` holds one row per line item with product-level categories.
+Defines the CSV file structure for storing receipt metadata and line-item detail. Two files work together: `receipts.csv` holds one row per receipt with match status; `receipt-items-YYYY-MM.csv` files hold one row per line item with product-level categories, partitioned by month based on the receipt date.
 
 ## Data Files
 
@@ -41,9 +41,9 @@ receipt_id,transaction_id,date,merchant,total_amount,currency,source,file_refere
 - Read filtered by transaction_id: to find receipts linked to a specific transaction
 - Update row: when user corrects a match (update transaction_id, match_status, match_confidence)
 
-### 2. receipt-items.csv (Line Items)
+### 2. receipt-items-YYYY-MM.csv (Line Items, Monthly Files)
 
-Stores individual line items from each receipt with product-level categorization.
+Stores individual line items from each receipt with product-level categorization. Items are partitioned into monthly files based on the receipt's `date` in `receipts.csv`. For example, a receipt dated 2026-01-28 has its items stored in `receipt-items-2026-01.csv`.
 
 **Header row**:
 ```
@@ -64,9 +64,9 @@ item_id,receipt_id,item_name,quantity,unit_price,total_price,category,subcategor
 | created_at | datetime | When the item was extracted (YYYY-MM-DD HH:MM:SS) |
 
 **File operations**:
-- Append rows: batch insert all items for a receipt after extraction
-- Read filtered by receipt_id: to display line items for a specific receipt
-- Read filtered by category/subcategory: for product-level spending analysis (future)
+- Append rows: determine the receipt date from `receipts.csv`, then write items to `receipt-items-{YYYY-MM}.csv` (create the file with header row if it doesn't exist)
+- Read filtered by receipt_id: get the receipt date from `receipts.csv`, open the corresponding monthly file, filter by receipt_id
+- Read filtered by date range: get receipt dates from `receipts.csv`, open only the relevant monthly files, filter by receipt_id
 
 ## ID Generation
 
@@ -78,7 +78,7 @@ item_id,receipt_id,item_name,quantity,unit_price,total_price,category,subcategor
 ### Item IDs
 - Format: `ritm-` + 8 random hex characters
 - Example: `ritm-e5f6g7h8`, `ritm-1a2b3c4d`
-- Must be unique across all rows in receipt-items.csv
+- Must be unique across all monthly receipt-items files
 
 ## Deduplication
 
@@ -93,7 +93,7 @@ If all three match an existing receipt, warn the user: "Denne kvittering ligner 
 
 ```
 transactions.csv --[tx_id]--> receipts.csv (via transaction_id)
-receipts.csv --[receipt_id]--> receipt-items.csv
+receipts.csv --[receipt_id + date]--> receipt-items-YYYY-MM.csv
 receipts.csv --> action-log.csv (receipt upload logged)
 ```
 
@@ -122,7 +122,7 @@ Receipt images and PDFs are saved to a local `receipts/` directory in the workin
 rcpt-a1b2c3d4,tx-uuid-001,2026-01-28,Foetex,347.50,DKK,upload,receipts/rcpt-a1b2c3d4.jpg,matched,0.95,8,2026-02-01 10:30:00
 ```
 
-**receipt-items.csv rows**:
+**receipt-items-2026-01.csv rows** (receipt date is 2026-01-28):
 ```
 ritm-e5f6g7h8,rcpt-a1b2c3d4,Minimælk 1L,2,12.95,25.90,Dagligvarer,Mejeriprodukter,0,2026-02-01 10:30:00
 ritm-f1g2h3i4,rcpt-a1b2c3d4,Hakket oksekød 500g,1,45.00,45.00,Dagligvarer,Kød,0,2026-02-01 10:30:00
@@ -143,7 +143,7 @@ Note: Items sum to 334.70, but receipt total is 347.50. The difference (12.80) i
 rcpt-b2c3d4e5,tx-uuid-042,2026-01-15,TDC,299.00,DKK,upload,receipts/rcpt-b2c3d4e5.pdf,matched,1.00,3,2026-02-01 11:00:00
 ```
 
-**receipt-items.csv rows**:
+**receipt-items-2026-01.csv rows** (receipt date is 2026-01-15):
 ```
 ritm-g8h9i0j1,rcpt-b2c3d4e5,Mobilabonnement Frihed+,1,199.00,199.00,Abonnementer,Mobilabonnement,0,2026-02-01 11:00:00
 ritm-h9i0j1k2,rcpt-b2c3d4e5,Ekstra data 10GB,1,49.00,49.00,Abonnementer,Mobilabonnement,0,2026-02-01 11:00:00

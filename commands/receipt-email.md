@@ -67,8 +67,10 @@ description: Scan Gmail for receipt and invoice emails, download attachments, ex
     n. If inline HTML only: set `file_reference` to `email:{message_id}`
     o. Set `source: email` on the receipt row
     p. Append receipt row to receipts.csv
-    q. Append item rows to receipt-items.csv
-    r. Log to action-log.csv
+    q. Determine the monthly file from the receipt date: `receipt-items-{YYYY-MM}.csv`
+    r. If the monthly file does not exist, create it with the header row
+    s. Append item rows to `receipt-items-{YYYY-MM}.csv`
+    t. Log to action-log.csv
 16. Update `last_email_scan` in settings.csv to current datetime. If settings.csv does not exist, create it with `key,value` header and the `last_email_scan` row.
 17. Output batch summary
 
@@ -118,7 +120,7 @@ Email-scanning faerdig. 3 af 4 emails behandlet:
 ## Side Effects
 - Downloads PDF attachments to `receipts/` directory
 - Writes to receipts.csv (new rows, one per processed email)
-- Writes to receipt-items.csv (new rows for extracted line items)
+- Writes to `receipt-items-{YYYY-MM}.csv` (new rows for extracted line items)
 - Writes to action-log.csv (one event per processed email)
 - Creates or updates settings.csv with `last_email_scan` timestamp
 

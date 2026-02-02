@@ -58,14 +58,16 @@ When `merchant` is provided, the command switches to receipt-level breakdown mod
 4. Read `receipts.csv`, filter by normalized merchant name (case-insensitive match on `merchant` column)
 5. If `month` argument is provided, further filter receipts by `date` column (YYYY-MM prefix match). If no month, use all receipts for this merchant.
 6. If no receipts match: "Ingen kvitteringer fundet for {merchant}. Upload en kvittering med `/smartspender:receipt upload`."
-7. Collect all matching `receipt_id` values
-8. Read `receipt-items.csv`, filter to rows where `receipt_id` is in the collected set
-9. Aggregate by `subcategory` per Receipt-Level Breakdown rules in `skills/spending-analysis/SKILL.md`:
+7. Collect all matching `receipt_id` values and their `date` values
+8. Determine which monthly files to read: extract unique YYYY-MM values from the collected receipt dates
+9. For each monthly file `receipt-items-{YYYY-MM}.csv`: read it if it exists, filter to rows where `receipt_id` is in the collected set. Skip if the file doesn't exist.
+10. Combine all matching rows from the monthly files
+11. Aggregate by `subcategory` per Receipt-Level Breakdown rules in `skills/spending-analysis/SKILL.md`:
    - Group by subcategory, compute total, percentage, item count
    - Sort by total (highest first)
    - Identify top 3 most purchased items overall
-10. Format using the merchant breakdown output template (see below)
-11. Present the formatted breakdown in Danish
+12. Format using the merchant breakdown output template (see below)
+13. Present the formatted breakdown in Danish
 
 ## Output
 

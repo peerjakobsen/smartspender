@@ -222,9 +222,9 @@ receipt_id,transaction_id,date,merchant,total_amount,currency,source,file_refere
 - Read filtered by transaction_id: to find receipts linked to a specific transaction
 - Update row: when user corrects a match
 
-### 9. receipt-items.csv (Line Items)
+### 9. receipt-items-YYYY-MM.csv (Line Items, Monthly Files)
 
-Stores individual line items from each receipt with product-level categorization.
+Stores individual line items from each receipt with product-level categorization. Items are partitioned into monthly files based on the receipt's `date` in `receipts.csv`. For example, a receipt dated 2026-01-28 has its items stored in `receipt-items-2026-01.csv`.
 
 **Header row**:
 ```
@@ -245,8 +245,9 @@ item_id,receipt_id,item_name,quantity,unit_price,total_price,category,subcategor
 | created_at | datetime | When the item was extracted (YYYY-MM-DD HH:MM:SS) |
 
 **File operations**:
-- Append rows: batch insert all items for a receipt after extraction
-- Read filtered by receipt_id: to display line items for a specific receipt
+- Append rows: determine the receipt date from `receipts.csv`, then write items to `receipt-items-{YYYY-MM}.csv` (create the file with header row if it doesn't exist)
+- Read filtered by receipt_id: get the receipt date from `receipts.csv`, open the corresponding monthly file, filter by receipt_id
+- Read filtered by date range: get receipt dates from `receipts.csv`, open only the relevant monthly files, filter by receipt_id
 
 ### 10. merchant-overrides.csv
 
@@ -275,7 +276,7 @@ raw_pattern,merchant,category,subcategory,created_at
 ```
 transactions.csv --[tx_id]--> categorized.csv
 transactions.csv --[tx_id]--> receipts.csv (via transaction_id)
-receipts.csv --[receipt_id]--> receipt-items.csv
+receipts.csv --[receipt_id + date]--> receipt-items-YYYY-MM.csv
 categorized.csv --[merchant + is_recurring]--> subscriptions.csv
 categorized.csv --[month + category]--> monthly-summary.csv
 merchant-overrides.csv <-- learned from manual corrections in categorized.csv
