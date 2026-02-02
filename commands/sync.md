@@ -49,19 +49,31 @@ description: Sync transactions from your bank account via CSV export or Open Ban
 
 ### Branch B: API Sync (sync_method = enable-banking)
 
-5. Run: `python3 tools/eb-api.py status`
-6. Parse the JSON output:
-   - If `status` is `expired`: "Samtykke er udløbet. Kør `python3 tools/eb-api.py auth --bank <bank>` for at forny samtykke med MitID."
+> **Vigtigt:** Enable Banking API-kald kører lokalt via `eb-api.py` — Cowork kan ikke køre dem direkte. Denne kommando guider brugeren til at køre terminale kommandoer og indsætte output.
+
+5. Tell user: "Kør denne kommando i din terminal for at tjekke session-status:"
+   ```
+   python3 ~/projects/SmartSpender/tools/eb-api.py status
+   ```
+   "Indsæt output her."
+6. **[USER ACTION]**: User pastes status output
+7. Parse the pasted JSON:
+   - If `status` is `expired`: "Samtykke er udløbet. Kør denne kommando i terminalen for at forny:" `python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <bank>` — then start over
    - If `status` is `no_session`: "Ingen aktiv session. Kør `/smartspender:add-account enable-banking` for at oprette forbindelse."
    - If `days_remaining` < 7: warn "Samtykke udløber om {days} dage. Overvej at forny snart."
-7. For each Enable Banking account in accounts.csv (matching the target):
+8. For each Enable Banking account in accounts.csv (matching the target):
    a. Get the `eb_account_uid` from accounts.csv
    b. Determine `last_synced` date. If empty, default to 90 days ago
-   c. Check rate limit from status output (`fetches_today`). If 4/4: "PSD2-grænse nået (4/4 daglige forespørgsler) for konto {account_name}. Prøv igen i morgen." Skip this account.
-   d. Run: `python3 tools/eb-api.py transactions --account <eb_account_uid> --from <last_synced_date>`
-   e. Parse the JSON output. If error: report and skip this account.
-   f. Filter transactions: only include those with `status: BOOK`
-   g. Map each transaction to common schema per `banks/enable-banking/export-format.md`:
+   c. Check rate limit from pasted status output (`fetches_today`). If 4/4: "PSD2-grænse nået (4/4 daglige forespørgsler) for konto {account_name}. Prøv igen i morgen." Skip this account.
+   d. Tell user: "Kør denne kommando i din terminal for at hente transaktioner:"
+      ```
+      python3 ~/projects/SmartSpender/tools/eb-api.py transactions --account <eb_account_uid> --from <last_synced_date>
+      ```
+      "Indsæt output her."
+   e. **[USER ACTION]**: User pastes transactions JSON output
+   f. Parse the pasted JSON. If error: report and skip this account.
+   g. Filter transactions: only include those with `status: BOOK`
+   h. Map each transaction to common schema per `banks/enable-banking/export-format.md`:
       - `date` ← `booking_date` (already YYYY-MM-DD)
       - `amount` ← `transaction_amount.amount`, negated if `credit_debit_indicator` = `DBIT`
       - `currency` ← `transaction_amount.currency`
@@ -69,7 +81,7 @@ description: Sync transactions from your bank account via CSV export or Open Ban
       - `raw_text` ← `remittance_information` joined with space
       - `bank` ← `enable-banking`
       - `account` ← `eb_account_uid`
-8. Continue to **Common Steps** below
+9. Continue to **Common Steps** below
 
 ### Common Steps (both branches)
 
@@ -115,10 +127,10 @@ If `all` with multiple accounts: report per account, then total:
 | Preset not found | "Præferencen 'smartspender' blev ikke fundet. Vi opretter den nu — følg vejledningen." (then trigger First-Time Setup flow from bank adapter) |
 | No accounts configured | "Ingen konti konfigureret. Kør /smartspender:add-account først." |
 | Unknown bank | "Banken '{bank}' er ikke understøttet. Tilgængelige banker: nykredit, enable-banking" |
-| EB session expired | "Samtykke er udløbet. Kør `python3 tools/eb-api.py auth --bank <bank>` for at forny." |
+| EB session expired | "Samtykke er udløbet. Kør `python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <bank>` i terminalen for at forny." |
 | EB rate limit | "PSD2-grænse nået (4/4 daglige forespørgsler). Prøv igen i morgen." |
-| EB API error | "Enable Banking API fejl: {error_details}. Prøv igen senere." |
-| eb-api.py not found | "tools/eb-api.py ikke fundet. Kør `/smartspender:setup-enable-banking` først." |
+| EB API error | Parse error from pasted output and provide guidance |
+| User pastes error output | Parse the error from pasted output and provide guidance |
 
 ## Side Effects
 - Writes to transactions.csv (new rows)

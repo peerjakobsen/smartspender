@@ -14,14 +14,16 @@ description: One-time setup guide for Enable Banking Open Banking API integratio
 No arguments. This is a guided setup wizard.
 
 ## Prerequisites
-- Python 3 installed on the system
+- Python 3 installed on user's local machine
 - Internet access
+
+> **Vigtigt:** Opsætningen kræver terminale kommandoer som Cowork ikke kan køre direkte. Denne guide fortæller brugeren hvilke kommandoer der skal køres lokalt.
 
 ## Workflow
 
-1. Announce: "Denne guide opsætter Enable Banking, så du kan synkronisere transaktioner fra din bank via API i stedet for browser-eksport. Det tager ca. 5-10 minutter."
-2. Check if Python 3 is available: run `python3 --version`
-3. If Python 3 is not found: "Python 3 er nødvendig. Installer fra python.org og prøv igen."
+1. Announce: "Denne guide opsætter Enable Banking, så du kan synkronisere transaktioner fra din bank via API i stedet for browser-eksport."
+2. Tell user: "Tjek at Python 3 er installeret — kør dette i din terminal:" `python3 --version`
+3. If user reports Python 3 not found: "Python 3 er nødvendig. Installer fra python.org og prøv igen."
 
 ### Step 1: Create Enable Banking Account
 4. Announce: "**Trin 1: Opret Enable Banking konto**"
@@ -40,9 +42,13 @@ No arguments. This is a guided setup wizard.
 13. **[USER ACTION]**: User downloads key and provides the file path
 
 ### Step 4: Install Dependencies
-14. Announce: "**Trin 4: Installerer Python-afhængigheder**"
-15. Run: `pip install requests PyJWT cryptography`
-16. If installation fails, suggest: `pip3 install requests PyJWT cryptography` or `python3 -m pip install requests PyJWT cryptography`
+14. Announce: "**Trin 4: Installer Python-afhængigheder**"
+15. Tell user: "Kør dette i din terminal:"
+    ```
+    pip install requests PyJWT cryptography
+    ```
+    "Hvis det fejler, prøv: `pip3 install requests PyJWT cryptography` eller `python3 -m pip install requests PyJWT cryptography`"
+16. **[USER ACTION]**: User confirms dependencies installed
 
 ### Step 5: Configure SmartSpender
 17. Announce: "**Trin 5: Gemmer konfiguration**"
@@ -58,10 +64,15 @@ No arguments. This is a guided setup wizard.
 ```
 
 ### Step 6: Test Connection
-22. Announce: "**Trin 6: Tester forbindelsen**"
-23. Run: `python3 tools/eb-api.py status`
-24. Expected: `no_session` status (which is correct — no bank linked yet)
-25. If error: troubleshoot based on error message (missing config, missing key file, etc.)
+22. Announce: "**Trin 6: Test forbindelsen**"
+23. Tell user: "Kør dette i din terminal for at teste:"
+    ```
+    python3 ~/projects/SmartSpender/tools/eb-api.py status
+    ```
+    "Indsæt output her."
+24. **[USER ACTION]**: User pastes output
+25. Expected: `no_session` status (which is correct — no bank linked yet)
+26. If error in pasted output: troubleshoot based on error message (missing config, missing key file, etc.)
 
 ### Step 7: Link First Bank
 26. Announce: "**Trin 7: Forbind din bank**"

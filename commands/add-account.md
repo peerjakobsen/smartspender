@@ -71,22 +71,38 @@ Only banks with adapters in `banks/` are supported. Currently: `nykredit` (brows
 
 ### Branch B: Enable Banking (API)
 
-6. Check that Enable Banking is configured: verify `~/.config/smartspender/eb-config.json` exists
-7. If not configured: "Enable Banking er ikke konfigureret. Kør `/smartspender:setup-enable-banking` først."
-8. Load the bank adapter: `banks/enable-banking/BANK.md`
-9. Ask which specific bank to connect (show list of supported Danish banks from the adapter):
+> **Vigtigt:** Enable Banking API-kald kører lokalt via `eb-api.py` — Cowork kan ikke køre dem direkte. Denne kommando guider brugeren til at køre terminale kommandoer og indsætte output.
+
+6. Load the bank adapter: `banks/enable-banking/BANK.md`
+7. Ask which specific bank to connect (show list of supported Danish banks from the adapter):
    - Nykredit, Danske Bank, Nordea, Jyske Bank, Sydbank, Spar Nord, Lunar, Arbejdernes Landsbank
-10. **[USER ACTION]**: User selects bank
-11. Run: `python3 tools/eb-api.py auth --bank <selected_bank_aspsp_name>`
-12. Announce: "Browser åbner for at oprette samtykke via MitID. Følg trinene i browseren."
-13. **[USER ACTION]**: User completes MitID consent in browser
-14. Wait for `eb-api.py auth` to complete (localhost callback captures code and creates session automatically)
-15. Parse the JSON output. If error: show error message and abort.
-16. Run: `python3 tools/eb-api.py accounts`
-17. Parse the JSON output to get list of available accounts
-18. Display accounts to user with UID, name, type, and currency
-19. **[USER ACTION]**: User selects which accounts to track
-20. For each selected account, append an entry to accounts.csv:
+8. **[USER ACTION]**: User selects bank
+9. Tell user: "Kør denne kommando i din terminal for at tjekke status:"
+   ```
+   python3 ~/projects/SmartSpender/tools/eb-api.py status
+   ```
+   "Indsæt output her."
+10. **[USER ACTION]**: User pastes status output
+11. Parse the pasted JSON:
+    - If `status` is `active`: proceed to step 14
+    - If `status` is `expired` or `no_session`: proceed to step 12
+    - If error about missing config: "Enable Banking er ikke konfigureret. Kør `/smartspender:setup-enable-banking` først."
+12. Tell user: "Du skal oprette en ny session. Kør denne kommando i din terminal:"
+    ```
+    python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <selected_bank_aspsp_name>
+    ```
+    "Browseren åbner — gennemfør MitID-samtykke. Når det er færdigt, indsæt output fra terminalen her."
+13. **[USER ACTION]**: User completes MitID consent and pastes terminal output
+14. Tell user: "Kør denne kommando for at se dine konti:"
+    ```
+    python3 ~/projects/SmartSpender/tools/eb-api.py accounts
+    ```
+    "Indsæt output her."
+15. **[USER ACTION]**: User pastes accounts JSON output
+16. Parse the pasted JSON to get list of available accounts
+17. Display accounts to user with UID, name, type, and currency
+18. **[USER ACTION]**: User selects which accounts to track
+19. For each selected account, append an entry to accounts.csv:
     - `account_id`: Auto-generated
     - `bank`: enable-banking
     - `account_name`: Use account name from API, or ask user for friendly name
@@ -95,14 +111,14 @@ Only banks with adapters in `banks/` are supported. Currently: `nykredit` (brows
     - `is_active`: TRUE
     - `sync_method`: enable-banking
     - `eb_account_uid`: Account UID from Enable Banking API
-    - `eb_session_id`: Session ID from `eb-session.json`
-21. Check if settings.csv exists. If not, create it with the default settings (same as Branch A step 16)
-22. Run the first sync: Execute the `/smartspender:sync enable-banking` workflow
-23. Append the setup event to action-log.csv:
+    - `eb_session_id`: Session ID from pasted status output
+20. Check if settings.csv exists. If not, create it with the default settings (same as Branch A step 16)
+21. Run the first sync: Execute the `/smartspender:sync enable-banking` workflow
+22. Append the setup event to action-log.csv:
     - `action_type`: add-account
     - `target`: enable-banking ({selected_bank_name})
     - `status`: completed
-    - `details`: "{count} accounts added via Enable Banking API and initial sync completed"
+    - `details`: "{count} accounts added via Enable Banking API"
 
 ## Output
 
@@ -121,9 +137,9 @@ Followed by: "Kør /smartspender:analyze for at kategorisere dine transaktioner.
 | Unknown bank | "Banken '{bank}' er ikke understøttet endnu. Tilgængelige banker: nykredit, enable-banking" |
 | Login failed | "Login mislykkedes. Prøv venligst igen med MitID." |
 | EB not configured | "Enable Banking er ikke konfigureret. Kør `/smartspender:setup-enable-banking` først." |
-| EB auth failed | "Samtykke mislykkedes. Prøv igen med `/smartspender:add-account enable-banking`." |
+| EB auth failed | "Samtykke mislykkedes. Kør `python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <bank>` igen i terminalen." |
 | No accounts found | "Ingen konti fundet. Tjek at du gav samtykke til kontoadgang." |
-| eb-api.py not found | "tools/eb-api.py ikke fundet. Kør `/smartspender:setup-enable-banking` først." |
+| User pastes error output | Parse the error from pasted output and provide guidance |
 
 ## Side Effects
 - Writes to accounts.csv (new account entry)
