@@ -40,11 +40,12 @@ Stored at `~/.config/smartspender/eb-config.json`:
 ## Session Lifecycle
 
 ### Consent Flow
-1. **Initiate**: `eb-api.py auth --bank <name>` sends POST to `/auth` with ASPSP details and redirect URL
-2. **MitID**: User authenticates in browser (auto-opened), bank redirects to localhost callback
-3. **Capture**: Localhost listener on port 19876 catches the authorization code
-4. **Session**: Code exchanged for session_id via POST to `/sessions`
-5. **Active**: Session provides access to account data for 90-180 days
+1. **Initiate**: `eb-api.py auth --bank <name>` sends POST to `/auth` with ASPSP details and redirect URL (`https://smartspender.mentilead.com/callback.html`)
+2. **MitID**: User authenticates in browser (auto-opened)
+3. **HTTPS Relay**: Bank redirects to `callback.html` which forwards `code` to `http://localhost:19876/callback`
+4. **Capture**: Localhost listener on port 19876 catches the authorization code
+5. **Session**: Code exchanged for session_id via POST to `/sessions`
+6. **Active**: Session provides access to account data for 90-180 days
 
 ### Session States
 | State | Meaning | Action |

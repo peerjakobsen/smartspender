@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpender - Videresender...</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Tailwind CSS 4 via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- IBM Plex Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+      --color-primary-50: #f0f7ff;
+      --color-primary-100: #e0efff;
+      --color-primary-400: #36a8ff;
+      --color-primary-600: #0070cc;
+      --color-primary-700: #0059a5;
+      --color-surface-50: #fafafa;
+      --color-surface-100: #f4f4f5;
+      --color-surface-200: #e4e4e7;
+      --color-surface-400: #a1a1aa;
+      --color-surface-500: #71717a;
+      --color-surface-600: #52525b;
+      --color-surface-700: #3f3f46;
+      --color-surface-800: #27272a;
+      --color-surface-900: #18181b;
+      --color-surface-950: #09090b;
+      --color-accent-400: #4ade80;
+      --color-accent-500: #22c55e;
+    }
+
+    @layer base {
+      html {
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-white text-surface-900 dark:bg-surface-950 dark:text-surface-100 antialiased">
+
+  <div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-md w-full text-center">
+
+      <!-- Logo -->
+      <div class="flex items-center justify-center gap-2 mb-8">
+        <svg class="w-7 h-7 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"/>
+          <path d="M12 18V6"/>
+        </svg>
+        <span class="font-semibold text-lg text-surface-900 dark:text-white">SmartSpender</span>
+      </div>
+
+      <!-- Redirecting state (shown by default) -->
+      <div id="redirecting">
+        <div class="mb-6">
+          <svg class="w-10 h-10 mx-auto text-primary-600 dark:text-primary-400 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+        </div>
+        <h1 class="text-xl font-semibold text-surface-900 dark:text-white mb-2">Videresender til SmartSpender...</h1>
+        <p class="text-sm text-surface-500 dark:text-surface-400">Samtykke modtaget. Du bliver nu sendt videre til den lokale SmartSpender-lytter.</p>
+      </div>
+
+      <!-- Fallback state (shown if no code or redirect fails) -->
+      <div id="fallback" class="hidden">
+        <h1 class="text-xl font-semibold text-surface-900 dark:text-white mb-4">Samtykke modtaget</h1>
+        <p class="text-sm text-surface-500 dark:text-surface-400 mb-6">
+          Den automatiske videresendelse virkede ikke. Kopier koden nedenfor og kør kommandoen manuelt:
+        </p>
+        <div class="bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 px-4 py-3 mb-4">
+          <p class="text-xs text-surface-400 dark:text-surface-500 mb-1">Autorisationskode:</p>
+          <code id="auth-code" class="font-mono text-sm text-primary-700 dark:text-primary-400 break-all select-all"></code>
+        </div>
+        <div class="bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 px-4 py-3">
+          <p class="text-xs text-surface-400 dark:text-surface-500 mb-1">Kør i terminalen:</p>
+          <code id="manual-command" class="font-mono text-xs text-surface-700 dark:text-surface-300 break-all select-all"></code>
+        </div>
+      </div>
+
+      <!-- No code state -->
+      <div id="no-code" class="hidden">
+        <h1 class="text-xl font-semibold text-surface-900 dark:text-white mb-4">Ingen autorisationskode</h1>
+        <p class="text-sm text-surface-500 dark:text-surface-400">
+          Denne side bruges til at videresende banksamtykke til SmartSpender. Der blev ikke fundet nogen autorisationskode i URL'en.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var code = params.get('code');
+      var state = params.get('state');
+
+      if (!code) {
+        document.getElementById('redirecting').classList.add('hidden');
+        document.getElementById('no-code').classList.remove('hidden');
+        return;
+      }
+
+      // Build localhost redirect URL
+      var localUrl = 'http://localhost:19876/callback?code=' + encodeURIComponent(code);
+      if (state) {
+        localUrl += '&state=' + encodeURIComponent(state);
+      }
+
+      // Show the code in fallback UI before attempting redirect
+      document.getElementById('auth-code').textContent = code;
+      document.getElementById('manual-command').textContent =
+        'python3 tools/eb-api.py session --code ' + code;
+
+      // Attempt redirect to localhost
+      window.location.href = localUrl;
+
+      // If still on this page after 3 seconds, show fallback
+      setTimeout(function() {
+        document.getElementById('redirecting').classList.add('hidden');
+        document.getElementById('fallback').classList.remove('hidden');
+      }, 3000);
+    })();
+  </script>
+
+</body>
+</html>

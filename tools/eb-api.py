@@ -47,7 +47,7 @@ SESSION_FILE = CONFIG_DIR / 'eb-session.json'
 API_BASE = 'https://api.enablebanking.com'
 CALLBACK_PORT = 19876
 CALLBACK_PATH = '/callback'
-CALLBACK_URL = f'http://localhost:{CALLBACK_PORT}{CALLBACK_PATH}'
+CALLBACK_URL = 'https://smartspender.mentilead.com/callback.html'
 
 
 def load_config():

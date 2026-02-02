@@ -31,7 +31,7 @@ No arguments. This is a guided setup wizard.
 
 ### Step 2: Create Application
 8. Announce: "**Trin 2: Opret en applikation**"
-9. Announce: "I Enable Banking dashboardet: Klik 'Applications' → 'Create Application'. Vælg 'Restricted production'. Giv den navnet 'SmartSpender'. Sig til, når applikationen er oprettet."
+9. Announce: "I Enable Banking dashboardet: Klik 'Applications' → 'Create Application'. Vælg 'Restricted production'. Giv den navnet 'SmartSpender'. Sæt redirect URL til `https://smartspender.mentilead.com/callback.html`. Sig til, når applikationen er oprettet."
 10. **[USER ACTION]**: User creates application and confirms
 
 ### Step 3: Download RSA Key

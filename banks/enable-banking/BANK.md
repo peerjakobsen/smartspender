@@ -22,9 +22,12 @@
 3. Script opens browser to Enable Banking consent URL
 4. **[USER ACTION]**: User completes MitID login in browser
 5. **[USER ACTION]**: User grants consent to share account data
-6. Bank redirects to `http://localhost:19876/callback` with authorization code
-7. Script automatically captures code and creates session
-8. Session stored in `~/.config/smartspender/eb-session.json`
+6. Bank redirects to `https://smartspender.mentilead.com/callback.html` (HTTPS relay page)
+7. Relay page reads the authorization code and redirects browser to `http://localhost:19876/callback`
+8. Script automatically captures code and creates session
+9. Session stored in `~/.config/smartspender/eb-session.json`
+
+> **Why the relay?** Enable Banking requires HTTPS redirect URLs. The relay page at `callback.html` receives the code over HTTPS and immediately forwards it to the localhost listener. If the redirect fails, the page displays the code with manual instructions.
 
 ### Re-consent (when session expires)
 

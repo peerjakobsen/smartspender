@@ -34,6 +34,9 @@ PSD2 allows 90-180 day consent windows. Each bank chooses their own duration:
 ### Pending Transactions Appear and Disappear
 Transactions with `status: PDNG` are not final. They may change amount, date, or be removed entirely. Only `BOOK` transactions are synced. If a user reports "missing" recent transactions, they may still be pending at the bank.
 
+### HTTPS Redirect URL Required
+Enable Banking requires HTTPS redirect URLs — `http://localhost` is rejected during application registration. SmartSpender uses an HTTPS relay page at `https://smartspender.mentilead.com/callback.html`. After MitID consent, the bank redirects to this page, which reads the `code` parameter and immediately redirects the browser to `http://localhost:19876/callback`. If the localhost redirect fails (e.g., `eb-api.py` isn't running), the relay page shows the authorization code with manual instructions.
+
 ### Port 19876 Must Be Available
 The localhost callback listener uses port 19876. If another application is using this port, the auth flow will fail. The error message from `eb-api.py` will indicate the port is in use. Stop the conflicting application and retry.
 
