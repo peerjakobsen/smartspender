@@ -147,22 +147,28 @@ Configured bank accounts.
 
 **Header row**:
 ```
-account_id,bank,account_name,account_type,last_synced,is_active
+account_id,bank,account_name,account_type,last_synced,is_active,sync_method,eb_account_uid,eb_session_id
 ```
 
 | Column | Type | Description |
 |--------|------|-------------|
 | account_id | string | Unique account identifier |
-| bank | string | Bank identifier (e.g., nykredit) |
+| bank | string | Bank identifier (e.g., nykredit, enable-banking) |
 | account_name | string | User-friendly name (e.g., Lonkonto) |
 | account_type | string | checking, savings, credit |
 | last_synced | datetime | Last successful sync timestamp |
 | is_active | boolean | TRUE if currently tracked |
+| sync_method | string | `browser` or `enable-banking` — determines which sync flow to use |
+| eb_account_uid | string | Enable Banking account UID (empty for browser-synced accounts) |
+| eb_session_id | string | Enable Banking session ID (empty for browser-synced accounts) |
+
+**Backward compatibility**: Existing rows (browser-synced) get `sync_method: browser` with empty `eb_account_uid` and `eb_session_id` fields.
 
 **File operations**:
 - Append row: when user adds a new account
 - Update row: after each sync (update `last_synced`)
 - Read all: to list configured accounts
+- Read `sync_method`: to determine which sync flow to use for each account
 
 ### 7. settings.csv
 

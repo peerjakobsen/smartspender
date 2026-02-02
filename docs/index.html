@@ -10,7 +10,7 @@
   <meta property="og:title" content="SmartSpender - Personal Finance for Danish Bank Customers">
   <meta property="og:description" content="A Claude Cowork plugin that turns Danish bank statements into actionable financial insights.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://peerjakobsen.github.io/smartspender/">
+  <meta property="og:url" content="https://smartspender.mentilead.com">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -533,6 +533,98 @@
     </div>
   </section>
 
+  <!-- Privacy Policy -->
+  <section id="privacy" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white mb-8">Privacy Policy</h2>
+      <p class="text-xs text-surface-400 dark:text-surface-500 mb-8">Last updated: February 2, 2026</p>
+      <div class="space-y-8 text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">What SmartSpender is</h3>
+          <p>SmartSpender is an open-source plugin for Claude Cowork that helps Danish bank customers analyze their personal finances. It runs locally on your computer as a set of markdown instructions and a Python helper script. There is no SmartSpender server, no SmartSpender account, and no SmartSpender database.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Data storage</h3>
+          <p>All financial data &mdash; transactions, categories, subscriptions, receipts &mdash; is stored as local CSV files on your machine in your working directory. SmartSpender never uploads, transmits, or copies your financial data to any external server. You can inspect, move, or delete these files at any time.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Bank credentials</h3>
+          <p>SmartSpender never handles, stores, or has access to your bank login credentials. Authentication with your bank happens directly between you and your bank via MitID. For browser-based sync, you log in yourself. For API-based sync via Enable Banking, the OAuth consent flow is handled between your browser, Enable Banking, and your bank &mdash; SmartSpender only receives a session token after you complete authentication.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Enable Banking integration</h3>
+          <p>If you choose to use the Enable Banking Open Banking API for transaction sync, the following applies:</p>
+          <ul class="mt-2 space-y-2 list-disc list-outside ml-5">
+            <li>You create your own Enable Banking account and application directly with Enable Banking. SmartSpender does not manage this account.</li>
+            <li>Your Enable Banking RSA private key and session data are stored locally at <code class="text-xs bg-surface-100 dark:bg-surface-800 px-1.5 py-0.5 rounded font-mono">~/.config/smartspender/</code> on your machine.</li>
+            <li>API communication happens directly between the helper script on your machine and the Enable Banking API. No data passes through SmartSpender infrastructure (there is none).</li>
+            <li>Consent is governed by PSD2 regulation and your bank's terms. You can revoke consent at any time through your bank.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Claude Cowork processing</h3>
+          <p>When you use SmartSpender within Claude Cowork, your transaction data is processed by Claude (Anthropic's AI) to perform categorization, analysis, and generate reports. This processing is governed by <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline cursor-pointer">Anthropic's Privacy Policy</a>. SmartSpender's instructions guide Claude's behavior but do not independently collect or process your data.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">This website</h3>
+          <p>This website is a static page hosted on GitHub Pages / Mentilead. It does not use cookies, analytics, tracking scripts, or collect any personal information. There are no forms, no accounts, and no data collection.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Contact</h3>
+          <p>For privacy questions, open an issue on the <a href="https://github.com/peerjakobsen/smartspender" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline cursor-pointer">GitHub repository</a> or contact the maintainer via the repository's profile page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Terms of Service -->
+  <section id="terms" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-surface-50 dark:bg-surface-900">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-surface-950 dark:text-white mb-8">Terms of Service</h2>
+      <p class="text-xs text-surface-400 dark:text-surface-500 mb-8">Last updated: February 2, 2026</p>
+      <div class="space-y-8 text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Acceptance</h3>
+          <p>By downloading and using SmartSpender, you agree to these terms. SmartSpender is provided as open-source software under the MIT License.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">What SmartSpender provides</h3>
+          <p>SmartSpender is a set of instructions and a helper script that enable Claude Cowork to assist with personal finance tasks. It is not a financial advisor, bank, payment processor, or regulated financial service. Any insights, categorizations, or suggestions are informational only and should not be treated as financial advice.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Your responsibilities</h3>
+          <ul class="mt-2 space-y-2 list-disc list-outside ml-5">
+            <li>You are responsible for securing your local data files and any API credentials stored on your machine.</li>
+            <li>You are responsible for complying with your bank's terms of service when using browser automation or Open Banking API access.</li>
+            <li>You are responsible for reviewing and verifying any financial data, categorizations, or recommendations before acting on them.</li>
+            <li>If using Enable Banking, you are responsible for your own Enable Banking account and for complying with their terms of service.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Third-party services</h3>
+          <p>SmartSpender integrates with third-party services that have their own terms:</p>
+          <ul class="mt-2 space-y-2 list-disc list-outside ml-5">
+            <li><strong class="text-surface-900 dark:text-white">Claude / Anthropic</strong> &mdash; AI processing is subject to <a href="https://www.anthropic.com/terms" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline cursor-pointer">Anthropic's Terms of Service</a></li>
+            <li><strong class="text-surface-900 dark:text-white">Enable Banking</strong> &mdash; Open Banking API access is subject to <a href="https://enablebanking.com/terms/" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline cursor-pointer">Enable Banking's Terms</a></li>
+            <li><strong class="text-surface-900 dark:text-white">Your bank</strong> &mdash; Account access is subject to your bank's terms and conditions</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Disclaimer of warranties</h3>
+          <p>SmartSpender is provided "as is" without warranty of any kind. The authors do not guarantee the accuracy of transaction categorization, subscription detection, savings estimates, or any other financial analysis. Bank integrations may break without notice due to changes on the bank's side.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Limitation of liability</h3>
+          <p>To the fullest extent permitted by law, the authors of SmartSpender shall not be liable for any damages arising from the use of this software, including but not limited to financial losses, missed payments, incorrect categorizations, or failed bank connections.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-white mb-3">Changes to these terms</h3>
+          <p>These terms may be updated by committing changes to the project repository. The "Last updated" date above will reflect the most recent revision.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-surface-200 dark:border-surface-800">
     <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -555,6 +647,8 @@
             <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
           </svg>
         </a>
+        <a href="#privacy" class="text-sm text-surface-400 dark:text-surface-500 hover:text-surface-900 dark:hover:text-white transition-colors duration-200 cursor-pointer">Privacy</a>
+        <a href="#terms" class="text-sm text-surface-400 dark:text-surface-500 hover:text-surface-900 dark:hover:text-white transition-colors duration-200 cursor-pointer">Terms</a>
         <span class="text-sm text-surface-400 dark:text-surface-500">MIT License</span>
       </div>
     </div>

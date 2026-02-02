@@ -10,6 +10,7 @@ A Claude Cowork plugin for personal finance management. Danish bank customers. F
 - `skills/` -- Domain knowledge (auto-activated by Claude)
 - `banks/` -- Bank-specific adapters (navigation, export formats, quirks)
 - `subscriptions/` -- Subscription service cancellation instructions
+- `tools/` -- Helper scripts (eb-api.py for Enable Banking API). Not included in plugin zip.
 
 ## Development Workflow
 

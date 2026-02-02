@@ -17,5 +17,13 @@ smartspender.zip
 .DS_Store
 Thumbs.db
 
+# Enable Banking credentials and session (outside repo, but safety net)
+*.pem
+eb-session.json
+eb-config.json
+
+# Python cache
+tools/__pycache__/
+
 # Claude Code cache
 .claude/skills/ui-ux-pro-max/scripts/__pycache__/
