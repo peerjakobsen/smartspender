@@ -8,8 +8,9 @@ A Claude Cowork plugin for personal finance management. Danish bank customers. F
 - `.claude-plugin/` -- Plugin manifest (Cowork runtime)
 - `commands/` -- Slash commands (user-invoked workflows)
 - `skills/` -- Domain knowledge (auto-activated by Claude)
-- `banks/` -- Bank-specific adapters (navigation, export formats, quirks)
+- `banks/` -- Bank adapter (Enable Banking API)
 - `subscriptions/` -- Subscription service cancellation instructions
+- `invoice-knowledge/` -- Learned vendor-specific invoice parsers
 - `tools/` -- Helper scripts (eb-api.py for Enable Banking API). Not included in plugin zip.
 
 ## Development Workflow
@@ -28,7 +29,7 @@ Refine  → Fix the instructions based on test results
           Repeat from Commit
 ```
 
-Build one vertical slice at a time. Get `/smartspender:sync nykredit` working end-to-end before starting `/smartspender:analyze`.
+Build one vertical slice at a time. Get `/smartspender:sync` working end-to-end before starting `/smartspender:analyze`.
 
 ## Key Constraints
 

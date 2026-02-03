@@ -53,7 +53,7 @@ For each Enable Banking account in accounts.csv:
 3. Run: `python3 tools/eb-api.py transactions --account <uid> --from <last_synced_date>`
 4. Parse the JSON output per `banks/enable-banking/export-format.md`
 5. Only include transactions with `status: BOOK`
-6. Normalize to common transaction schema per `skills/transaction-schema/SKILL.md`
+6. Normalize to common transaction schema per `skills/data-schemas/SKILL.md`
 7. Generate tx_hash using `balance_after_transaction` when available
 8. Deduplicate against existing transactions.csv
 9. Append new transactions

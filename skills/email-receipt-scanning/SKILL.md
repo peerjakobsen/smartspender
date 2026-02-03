@@ -170,6 +170,5 @@ Not every email matching the search query is a receipt. Apply these filters:
 
 ## Related Skills
 
-- See `skills/invoice-parsing/SKILL.md` for vendor detection and parser lookup workflow
-- See `skills/receipt-parsing/SKILL.md` for general extraction rules
-- See `skills/receipt-schema/SKILL.md` for the CSV file structure (email receipts use `source: email`)
+- See `skills/document-parsing/SKILL.md` for vendor detection, parser lookup workflow, and general extraction rules
+- See `skills/data-schemas/SKILL.md` for the CSV file structure (email receipts use `source: email`)

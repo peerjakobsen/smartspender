@@ -171,5 +171,5 @@ When a user corrects subscription detection, record the correction in `learnings
 ## Related Skills
 
 - See `skills/categorization/SKILL.md` for how merchants are identified
-- See `skills/sheets-schema/SKILL.md` for the subscriptions.csv structure
+- See `skills/data-schemas/SKILL.md` for the subscriptions.csv structure
 - See `learnings/subscriptions.md` for user corrections to subscription detection

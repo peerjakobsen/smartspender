@@ -46,9 +46,9 @@ description: Scan Gmail for receipt and invoice emails, download attachments, ex
    ```
 9. **[USER ACTION]**: User chooses "alle", "vaelg" (then picks numbers), or "annuller"
 10. If user cancels, respond: "Email-scanning annulleret." and stop.
-11. Load invoice-parsing skill: `skills/invoice-parsing/SKILL.md`
-12. Load extraction rules: `skills/receipt-parsing/SKILL.md`
-13. Load schema: `skills/receipt-schema/SKILL.md`
+11. Load document-parsing skill: `skills/document-parsing/SKILL.md`
+12. Load extraction and vendor detection rules from `skills/document-parsing/SKILL.md`
+13. Load schema: `skills/data-schemas/SKILL.md`
 14. Load matching rules: `skills/transaction-matching/SKILL.md`
 15. For each selected email, process in sequence:
     a. Detect content type (PDF attachment, inline HTML, or both — prefer PDF)

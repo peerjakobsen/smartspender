@@ -190,7 +190,6 @@ If the receipt is in a foreign currency, the amount comparison should use the DK
 
 ## Related Skills
 
-- See `skills/receipt-schema/SKILL.md` for the receipts.csv and receipt-items.csv structure
-- See `skills/receipt-parsing/SKILL.md` for how receipt data is extracted
+- See `skills/data-schemas/SKILL.md` for the receipts.csv, receipt-items.csv, and complete data file structure
+- See `skills/document-parsing/SKILL.md` for how receipt data is extracted
 - See `skills/categorization/SKILL.md` for merchant name normalization rules
-- See `skills/sheets-schema/SKILL.md` for the complete data file overview

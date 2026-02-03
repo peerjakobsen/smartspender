@@ -2,109 +2,134 @@
 
 ## Purpose
 
-Copy this template when adding a new bank to SmartSpender. Create a new directory under `banks/` with the bank's lowercase identifier, then create the three required files.
+This template is for the Enable Banking API adapter. All bank sync operations use the Enable Banking Open Banking API, which provides consistent access to 50+ Danish banks.
 
 ## Directory Structure
 
 ```
-banks/{bank-id}/
-├── BANK.md              # Navigation and authentication flow
-├── export-format.md     # CSV/export parsing rules
-└── quirks.md            # Known issues and workarounds
+banks/enable-banking/
+├── BANK.md              # API integration overview and supported banks
+├── export-format.md     # API response mapping to common schema
+└── quirks.md            # Bank-specific field variations
 ```
 
 ## BANK.md Template
 
 ```markdown
-# {Bank Name} Adapter
+# Enable Banking Adapter
 
 ## Basic Info
-- **Bank ID**: `{bank-id}`
-- **Website**: {website}
-- **Netbank URL**: {netbank login URL}
-- **Export URL**: {direct URL to export page, if available}
-- **Authentication**: MitID
+- **Bank ID**: `enable-banking`
+- **API Provider**: Enable Banking (enablebanking.com)
+- **Authentication**: MitID via OAuth2 redirect flow
+- **Session Duration**: 90-180 days depending on bank
 
-## Navigation Flow
+## Supported Banks
 
-1. Navigate to: `{netbank URL}`
-2. Announce: "Please log in with MitID. Let me know when you're logged in."
-3. **[USER ACTION]**: User completes MitID login
-4. **[USER ACTION]**: User confirms login complete
-5. Navigate to: `{export/transactions page URL}`
-6. Wait for: {what indicates the page is ready}
-7. {Steps to configure and trigger export}
+Danish banks available via Enable Banking:
+- Nykredit, Danske Bank, Nordea, Jyske Bank
+- Sydbank, Spar Nord, Arbejdernes Landsbank
+- Lunar, Bank Norwegian
+- Plus 50+ smaller Danish banks through BEC/Bankdata
 
-## Export Options
-- **CSV Download**: Yes/No
-- **Screen Scrape**: {describe table structure if no CSV}
-- **Format Selection**: {how to choose the right format}
+## API Flow
+
+1. User creates Enable Banking account and application
+2. User runs `eb-api.py auth --bank <aspsp>` to initiate MitID consent
+3. Browser redirects to bank's MitID login
+4. After consent, session token is stored locally
+5. Transactions fetched via `eb-api.py transactions --account <uid> --from <date>`
+6. Session valid for 90-180 days (bank-dependent)
 
 ## Session Notes
-- **Session timeout**: {duration, e.g., 15 minutes}
-- **Re-auth triggers**: {actions that require re-authentication}
+- **Session refresh**: Re-authenticate when session expires
+- **Rate limits**: PSD2 limits to 4 requests per day per account
+- **Consent scope**: Read-only access to account list and transactions
 ```
 
 ## export-format.md Template
 
 ```markdown
-# {Bank Name} Export Format
+# Enable Banking Export Format
 
-## File Format
-- **Type**: CSV
-- **Delimiter**: {comma, semicolon, tab}
-- **Decimal separator**: {period or comma}
-- **Encoding**: {UTF-8, ISO-8859-1}
-- **Date format**: {DD/MM/YYYY, DD-MM-YYYY}
-- **Has header row**: Yes/No
+## Response Format
+- **Type**: JSON (API response)
+- **Decimal format**: Standard decimal (period separator)
+- **Date format**: YYYY-MM-DD (ISO 8601)
 
-## Columns
+## Transaction Fields
 
-| # | Column Name | Description |
-|---|-------------|-------------|
-| 1 | {name} | {description} |
-| 2 | {name} | {description} |
-| ... | ... | ... |
+| API Field | Common Field | Transform |
+|-----------|--------------|-----------|
+| booking_date | date | Direct (already YYYY-MM-DD) |
+| transaction_amount.amount | amount | Negate if credit_debit_indicator = DBIT |
+| transaction_amount.currency | currency | Direct |
+| creditor.name or debtor.name | description | Use creditor for DBIT, debtor for CRDT |
+| remittance_information | raw_text | Join array with space |
+| balance_after_transaction | (dedup) | Used for tx_hash computation |
+| credit_debit_indicator | (direction) | DBIT = expense, CRDT = income |
+| status | (filter) | Only include BOOK transactions |
 
-## Column Mapping to Common Schema
+## Sample Response
 
-| Bank Column | Common Field | Transform |
-|-------------|--------------|-----------|
-| {column} | date | Parse {format} to YYYY-MM-DD |
-| {column} | amount | {conversion rules} |
-| {column} | raw_text | Direct |
-| {column} | account | Direct |
-| {balance column} | (dedup) | Running balance -- used for tx_hash computation |
-| {column} | (ignore) | - |
-
-## Sample Row
-
-{Include a realistic sample CSV row with all columns}
+{
+  "transactions": [
+    {
+      "entry_reference": "...",
+      "booking_date": "2026-01-15",
+      "value_date": "2026-01-15",
+      "transaction_amount": {
+        "amount": "847.50",
+        "currency": "DKK"
+      },
+      "credit_debit_indicator": "DBIT",
+      "status": "BOOK",
+      "creditor": {
+        "name": "FOETEX"
+      },
+      "remittance_information": ["Dankort-koeb FOETEX 4123"],
+      "balance_after_transaction": {
+        "amount": "12543.25",
+        "credit_debit_indicator": "CRDT"
+      }
+    }
+  ]
+}
 ```
 
 ## quirks.md Template
 
 ```markdown
-# {Bank Name} Quirks
+# Enable Banking Quirks
 
 ## Known Issues
 
-### {Issue 1 title}
-{Description of the issue and how to handle it}
+### Balance Field Availability
+Some banks don't provide `balance_after_transaction`. In this case, use the fallback hash formula with normalized raw_text.
 
-### {Issue 2 title}
-{Description and workaround}
+### Merchant Name Variations
+Different banks format creditor/debtor names differently:
+- Some use uppercase (FOETEX)
+- Some include location codes (FOETEX 4123)
+- Some truncate names
 
-## Transaction Description Patterns
+## Bank-Specific Notes
 
-Common patterns in this bank's transaction descriptions:
+### Nykredit
+- Provides balance consistently
+- Clean creditor names
 
-- **Card payments**: "{pattern}"
-- **Transfers**: "{pattern}"
-- **Direct debit (PBS)**: "{pattern}"
-- **ATM withdrawals**: "{pattern}"
+### Danske Bank
+- May include branch codes in names
+- Balance usually available
+
+### Lunar
+- Clean JSON responses
+- Balance not always available
 
 ## Tips
 
-- {Helpful notes for working with this bank}
+- Always check for balance_after_transaction before using primary hash formula
+- Normalize merchant names for matching (uppercase, remove trailing codes)
+- Filter to status = BOOK to avoid pending transactions
 ```

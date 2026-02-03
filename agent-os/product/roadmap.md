@@ -4,39 +4,42 @@
 
 Core workflows that deliver the primary value proposition:
 
-- **Transaction Sync (Nykredit)** -- Sync transactions from Nykredit netbank via browser automation, using the pre-configured "smartspender" export preset
+- **Transaction Sync (Enable Banking)** -- Sync transactions from 50+ Danish banks via Enable Banking Open Banking API. Sessions last 90-180 days between MitID re-authentication.
 - **Transaction Categorization** -- Categorize transactions using rule-based merchant matching, pattern detection, and intelligent classification with Danish merchant/category knowledge
 - **Subscription Detection** -- Identify recurring charges by analyzing transaction patterns (frequency, amount, merchant)
-- **Spending Overview** -- Generate spending summaries by category with month-over-month comparisons and subscription totals
+- **Spending Overview** -- Generate spending summaries by category with month-over-month comparisons and subscription totals. Use `--detailed` flag for full monthly reports.
 - **Subscription Cancellation** -- Guide users through cancelling unwanted subscriptions via browser automation with human-in-the-loop authentication
-- **Google Sheets Integration** -- Store all data (transactions, categories, subscriptions, summaries, action log) in the user's own Google Sheets via MCP
-- **Monthly Reports** -- Generate comprehensive monthly spending reports
+- **Local CSV Storage** -- Store all data (transactions, categories, subscriptions, summaries, action log) in local CSV files in the working directory
+- **Financial Advice** -- Personalized financial guidance based on Danish 5-step framework
 
 ### MVP Slash Commands
-- `/smartspender:sync [bank]`
+- `/smartspender:add-account [bank]` — Add bank account (includes first-time Enable Banking setup)
+- `/smartspender:sync`
 - `/smartspender:analyze`
-- `/smartspender:overview [month]`
+- `/smartspender:overview [month]` — Add `--detailed` for full monthly report
 - `/smartspender:subscriptions`
 - `/smartspender:cancel [service]`
-- `/smartspender:report [month]`
-- `/smartspender:add-account [bank]`
+- `/smartspender:advice`
 
-## Phase 2: Post-Launch
+### MVP Architecture
 
-### Additional Banks
-- Danske Bank
-- Nordea
-- Jyske Bank
-- Lunar (app-based -- may need manual CSV upload approach)
-- Arbejdernes Landsbank
+| Aspect | Approach |
+|--------|----------|
+| Bank sync | Enable Banking API (all banks, one adapter) |
+| Auth frequency | Every 90-180 days |
+| Speed | Fast (<5s per sync) |
+| Reliability | Stable API |
+| Bank coverage | 50+ Danish banks through BEC/Bankdata |
 
-### Enhanced Features
+## Phase 2: Enhanced Features
+
+### Post-Launch Enhancements
 - Budget tracking with category limits and alerts
 - Savings goals with progress tracking
 - Bill reminders for upcoming recurring charges
 - Multi-currency support for foreign transactions
 - Investment/depot account tracking
-- Tax preparation export (årsopgørelse)
+- Tax preparation export (aarsopgoerelse)
 - Family sharing for shared household expenses
 - Merchant enrichment (logos, enhanced categories)
 - Predictive spending forecasts based on patterns
@@ -47,23 +50,23 @@ Unlock detailed spending insights by parsing line-item data from receipts and in
 
 ### The Problem
 Bank transactions show aggregated amounts without detail:
-- `FØTEX 4123 -847,50 kr` → No breakdown of alcohol vs. dairy vs. impulse buys
+- `FOETEX 4123 -847,50 kr` → No breakdown of alcohol vs. dairy vs. impulse buys
 - `TDC A/S -549,00 kr` → No visibility into unused services or add-ons
 
 ### Value Proposition
 | Without Receipt Data | With Receipt Data |
 |---------------------|-------------------|
-| "Du bruger 4.500 kr/md på dagligvarer" | "Du bruger 800 kr/md på alkohol og 600 kr på snacks" |
+| "Du bruger 4.500 kr/md paa dagligvarer" | "Du bruger 800 kr/md paa alkohol og 600 kr paa snacks" |
 | "TDC koster 549 kr/md" | "Du betaler for 3 tjenester du ikke bruger (149 kr/md)" |
-| "Føtex 847 kr" | "23% af dit køb var impulskøb ved kassen" |
+| "Foetex 847 kr" | "23% af dit koeb var impulskoeb ved kassen" |
 
 ### Phase 3a: Direct Upload (Foundation)
 - **Photo/Scan OCR** -- User uploads receipt image, Claude Vision extracts line items
 - **PDF Invoice Parsing** -- Extract cost breakdowns from utility bills, telecom invoices
 - **Transaction Matching** -- Link receipts to transactions by date ± 1 day and amount match
-- **ReceiptItems Sheet** -- New Google Sheet storing item-level data with categories/subcategories
+- **Receipt Items Storage** -- CSV files storing item-level data with categories/subcategories
 - **Command: `/smartspender:receipt upload`** -- Upload and process a single receipt
-- **Receipt Spending Breakdown** -- After upload, show subcategory spending breakdown (e.g., Alkohol 24%, Kød 13%) so users can see where their grocery money goes
+- **Receipt Spending Breakdown** -- After upload, show subcategory spending breakdown (e.g., Alkohol 24%, Koed 13%) so users can see where their grocery money goes
 
 ### Phase 3b: Grocery Chain Integration
 - **Coop Member Portal** -- Browser automation to extract receipts from coop.dk/medlem (Kvickly, Brugsen, Irma)
@@ -83,7 +86,7 @@ Invoices are discussed interactively with Cowork. As you verify and correct extr
 3. If not → Parse best-effort, discuss with user, verify
 4. After verification → Save learnings to parser file
 
-**Cowork for discovery, persist what it learns.** Same pattern that worked for the Nykredit bank adapter.
+**Cowork for discovery, persist what it learns.** Same pattern that worked for the bank adapter.
 
 **File Structure:**
 ```
@@ -106,42 +109,13 @@ invoice-knowledge/
 
 **Command: `/smartspender:receipt learn`** -- Save current conversation's learnings to parser file
 
-### Phase 3e: Enable Banking Integration ✓
-
-Alternative sync path using Open Banking APIs instead of browser automation. Enables multi-bank support with a single integration.
-
-**Implemented:**
-- `tools/eb-api.py` -- Python helper for JWT auth, API calls, session management, localhost callback listener
-- `banks/enable-banking/` -- Bank adapter (BANK.md, export-format.md, quirks.md)
-- `skills/enable-banking-api/SKILL.md` -- API domain knowledge
-- `commands/setup-enable-banking.md` -- One-time setup wizard
-- Updated `commands/sync.md` -- Branch A (browser) / Branch B (API) sync paths
-- Updated `commands/add-account.md` -- Enable Banking flow with ASPSP selection
-- Updated `skills/transaction-schema/SKILL.md` -- EB hash examples, fallback formula docs
-- Updated `skills/sheets-schema/SKILL.md` -- New accounts.csv columns (sync_method, eb_account_uid, eb_session_id)
-
-**Supported Danish Banks (via Enable Banking):**
-- Nykredit, Danske Bank, Nordea, Jyske Bank
-- Sydbank, Spar Nord, Arbejdernes Landsbank
-- Lunar, Bank Norwegian
-- Plus 50+ smaller Danish banks through BEC/Bankdata
-
-**Trade-offs vs Browser Automation:**
-| Aspect | Browser Automation | Enable Banking |
-|--------|-------------------|----------------|
-| Initial setup | Simpler | Requires Enable Banking account |
-| Auth frequency | Every sync | Every 90-180 days |
-| Speed | Slow (30-60s) | Fast (<5s) |
-| Reliability | Breaks if UI changes | Stable API |
-| Bank coverage | One adapter per bank | All banks, one adapter |
-
-### Data Architecture: ReceiptItems Sheet
+### Data Architecture: Receipt Items Files
 | Column | Type | Description |
 |--------|------|-------------|
 | receipt_id | string | Unique receipt identifier |
-| transaction_id | string | Links to Transactions sheet |
+| transaction_id | string | Links to transactions.csv |
 | source | string | upload/storebox/coop/eboks/email |
-| item_name | string | "Øko letmælk 1L" |
+| item_name | string | "Oeko letmaelk 1L" |
 | quantity | number | 2 |
 | unit_price | number | 14.95 |
 | total_price | number | 29.90 |

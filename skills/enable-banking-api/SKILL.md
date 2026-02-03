@@ -198,8 +198,7 @@ When running `eb-api.py auth --bank <name>`, use the bank's name as registered w
 | `503 Service Unavailable` | Bank API temporarily down | Retry later |
 
 ## Related Skills
-- `skills/transaction-schema/SKILL.md` — Common schema that EB transactions map into
-- `skills/sheets-schema/SKILL.md` — CSV file structures including accounts.csv with EB fields
+- `skills/data-schemas/SKILL.md` — Common transaction schema and CSV file structures including accounts.csv with EB fields
 
 ## Known Limitations
 - PSD2 rate limit (4/day/account) means no real-time balance checking

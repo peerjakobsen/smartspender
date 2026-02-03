@@ -25,8 +25,8 @@ description: Upload and process receipt images or PDF invoices, extract line ite
 1. Prompt the user to share their receipt: "Del venligst kvitteringen — du kan indsaette et billede eller traekke en PDF ind i chatten."
 2. **[USER ACTION]**: User attaches a receipt image or PDF invoice
 3. If no file is attached, respond: "Jeg kan ikke se nogen kvittering. Indsaet venligst et billede eller en PDF."
-4. Load extraction rules: `skills/receipt-parsing/SKILL.md`
-5. Load invoice-parsing skill: `skills/invoice-parsing/SKILL.md`
+4. Load extraction rules: `skills/document-parsing/SKILL.md`
+5. Load vendor detection workflow from `skills/document-parsing/SKILL.md`
 6. Detect vendor from the uploaded file (filename, header/logo, content keywords) per the invoice-parsing skill's vendor detection workflow
 7. If vendor detected: check for `invoice-knowledge/{vendor-id}/PARSER.md`
    - If parser exists: load vendor-specific extraction rules and use them for steps 8-11
@@ -50,10 +50,10 @@ description: Upload and process receipt images or PDF invoices, extract line ite
 11. Apply any corrections from the user
 12. Extract line items from the receipt:
     - Item name, quantity, unit price, total price
-    - Assign category and subcategory per `skills/receipt-parsing/SKILL.md` product taxonomy (or vendor-specific PARSER.md if loaded in step 7)
+    - Assign category and subcategory per `skills/document-parsing/SKILL.md` product taxonomy (or vendor-specific PARSER.md if loaded in step 7)
     - Handle discounts (RABAT lines)
-13. Validate line item sum against receipt total (per variance rules in receipt-parsing skill)
-14. Load schema: `skills/receipt-schema/SKILL.md`
+13. Validate line item sum against receipt total (per variance rules in document-parsing skill)
+14. Load schema: `skills/data-schemas/SKILL.md`
 15. Check for duplicate receipts in receipts.csv (same date + merchant + total_amount). If duplicate found, ask: "Denne kvittering ligner en der allerede er registreret ({receipt_id} fra {date}). Vil du tilfoeje den alligevel?"
 16. **[USER ACTION]** (only if duplicate): User confirms or cancels
 17. If user cancels on duplicate, stop and output: "Kvitteringen blev ikke tilfojet."
