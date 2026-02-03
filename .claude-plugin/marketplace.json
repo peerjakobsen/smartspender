@@ -1,0 +1,32 @@
+{
+  "name": "smartspender",
+  "owner": {
+    "name": "Peer Jakobsen",
+    "email": "peerjakobsen@github.com"
+  },
+  "metadata": {
+    "description": "Personal finance management for Danish bank customers"
+  },
+  "plugins": [
+    {
+      "name": "smartspender",
+      "source": ".",
+      "description": "Sync transactions, analyze spending, detect subscriptions, and take action.",
+      "version": "1.7.0",
+      "author": {
+        "name": "Peer Jakobsen"
+      },
+      "repository": "https://github.com/peerjakobsen/SmartSpender",
+      "license": "MIT",
+      "keywords": [
+        "personal-finance",
+        "danish-banking",
+        "spending-analysis",
+        "subscriptions",
+        "budget",
+        "receipts",
+        "csv"
+      ]
+    }
+  ]
+}
