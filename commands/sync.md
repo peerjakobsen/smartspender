@@ -51,7 +51,20 @@ If `all` (or no argument), syncs all active accounts in accounts.csv.
    e. **[USER ACTION]**: User pastes transactions JSON output
    f. Parse the pasted JSON. If error: report and skip this account.
    g. Filter transactions: only include those with `status: BOOK`
-   h. Map each transaction to common schema per `banks/enable-banking/export-format.md`:
+   h. Fetch account balance:
+      - Tell user: "Hent kontosaldo:"
+        ```
+        python3 ~/projects/SmartSpender/tools/eb-api.py balances --account <eb_account_uid>
+        ```
+        "Indsaet output her."
+      - **[USER ACTION]**: User pastes balances JSON output
+      - Parse the pasted JSON. Extract balance using priority:
+        1. Prefer `CLBD` (closing booked balance)
+        2. Fall back to `ITAV` (intraday available) if CLBD not present
+        3. Fall back to `XPCD` (expected) if neither present
+      - Store: `balance` = amount, `balance_type` = type code, `balance_date` = reference_date or today
+      - If balance fetch fails (rate limit, parse error): continue without balance update (non-blocking)
+   i. Map each transaction to common schema per `banks/enable-banking/export-format.md`:
       - `date` ← `booking_date` (already YYYY-MM-DD)
       - `amount` ← `transaction_amount.amount`, negated if `credit_debit_indicator` = `DBIT`
       - `currency` ← `transaction_amount.currency`
@@ -59,19 +72,23 @@ If `all` (or no argument), syncs all active accounts in accounts.csv.
       - `raw_text` ← `remittance_information` joined with space
       - `bank` ← `enable-banking`
       - `account` ← `eb_account_uid`
-7. Normalize each row to the common transaction schema (per `skills/data-schemas/SKILL.md`):
+8. Normalize each row to the common transaction schema (per `skills/data-schemas/SKILL.md`)
     - Convert dates to YYYY-MM-DD
     - Normalize amounts
     - Clean descriptions
     - Extract the balance from `balance_after_transaction` for API sync
     - Generate tx_hash for each transaction: `"{account}|{date}|{amount}|{saldo}"`
     - If no saldo available (API sync without `balance_after_transaction`): use fallback formula `"{account}|{date}|{amount}|{raw_text_normalized}"`
-8. Read existing transactions.csv (if it exists) and extract all `tx_hash` values
-9. If transactions.csv doesn't exist, create it with the header row
-10. Filter out transactions whose `tx_hash` already exists (deduplication)
-11. Append new transactions to transactions.csv
-12. Update the account's `last_synced` timestamp in accounts.csv
-13. Append the sync event to action-log.csv:
+9. Read existing transactions.csv (if it exists) and extract all `tx_hash` values
+10. If transactions.csv doesn't exist, create it with the header row
+11. Filter out transactions whose `tx_hash` already exists (deduplication)
+12. Append new transactions to transactions.csv
+13. Update the account row in accounts.csv:
+    - `last_synced` ← current timestamp
+    - `balance` ← fetched balance amount (if available)
+    - `balance_type` ← fetched balance type code (if available)
+    - `balance_date` ← fetched reference_date or today (if available)
+14. Append the sync event to action-log.csv:
     - `action_type`: sync
     - `target`: enable-banking
     - `status`: completed
@@ -79,14 +96,31 @@ If `all` (or no argument), syncs all active accounts in accounts.csv.
 
 ## Output
 
-"Synkroniserede {count} nye transaktioner fra Enable Banking ({date_range})"
+**Single account**:
+```
+Synkroniserede {count} nye transaktioner fra Enable Banking ({date_range})
+Kontosaldo: {balance} kr (pr. {balance_date})
+```
 
-**Example**: "Synkroniserede 82 nye transaktioner fra Enable Banking (1. jan – 2. feb)"
+**Example**:
+```
+Synkroniserede 82 nye transaktioner fra Enable Banking (1. jan – 2. feb)
+Kontosaldo: 12.543,25 kr (pr. 3. feb)
+```
 
 If no new transactions: "Ingen nye transaktioner fundet siden sidste synkronisering ({last_sync_date})"
+Still show balance if fetched: "Kontosaldo: {balance} kr (pr. {balance_date})"
 
-If multiple accounts: report per account, then total:
-"Synkroniserede 47 nye transaktioner fra Lonkonto + 35 fra Budgetkonto = 82 i alt"
+**Multiple accounts**:
+```
+Synkroniserede 47 nye fra Lønkonto + 35 fra Budgetkonto = 82 i alt
+
+Kontosaldi:
+- Lønkonto: 12.543,25 kr
+- Budgetkonto: 3.210,00 kr
+```
+
+If balance fetch failed for an account, omit it from the balance list (non-blocking).
 
 ## Error Cases
 
@@ -101,7 +135,7 @@ If multiple accounts: report per account, then total:
 
 ## Side Effects
 - Writes to transactions.csv (new rows)
-- Updates accounts.csv (`last_synced` timestamp)
+- Updates accounts.csv (`last_synced` timestamp, `balance`, `balance_type`, `balance_date`)
 - Writes to action-log.csv
 
 ## Related Commands

@@ -95,6 +95,33 @@ Fetch transactions. Parameters:
 ### GET /accounts/{uid}/balances
 Fetch current balances. Returns balance type, amount, currency, and date.
 
+**Response structure**:
+```json
+{
+  "balances": [
+    {
+      "balance_amount": {"amount": "12543.25", "currency": "DKK"},
+      "balance_type": "CLBD",
+      "reference_date": "2026-02-03"
+    },
+    {
+      "balance_amount": {"amount": "12100.00", "currency": "DKK"},
+      "balance_type": "ITAV",
+      "reference_date": "2026-02-03"
+    }
+  ]
+}
+```
+
+**Balance type codes**:
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `CLBD` | Closing booked balance | End of day settled — most accurate, prefer this |
+| `ITAV` | Intraday available | Current available funds — fallback if CLBD missing |
+| `XPCD` | Expected balance | Projected balance including pending |
+
+**Parsing priority**: Prefer `CLBD` over `ITAV` over `XPCD`. Extract `balance_amount.amount` as the balance value.
+
 ## Transaction Structure
 
 Enable Banking returns transactions in this JSON format:

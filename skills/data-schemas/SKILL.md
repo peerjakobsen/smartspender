@@ -422,7 +422,7 @@ Configured bank accounts.
 
 **Header row**:
 ```
-account_id,bank,account_name,account_type,last_synced,is_active,eb_account_uid,eb_session_id
+account_id,bank,account_name,account_type,last_synced,is_active,eb_account_uid,eb_session_id,balance,balance_type,balance_date
 ```
 
 | Column | Type | Description |
@@ -435,10 +435,18 @@ account_id,bank,account_name,account_type,last_synced,is_active,eb_account_uid,e
 | is_active | boolean | TRUE if currently tracked |
 | eb_account_uid | string | Enable Banking account UID |
 | eb_session_id | string | Enable Banking session ID |
+| balance | number | Current account balance |
+| balance_type | string | Balance type code (e.g., CLBD, ITAV) |
+| balance_date | date | When balance was last updated (YYYY-MM-DD) |
+
+**Balance type codes**:
+- `CLBD`: Closing booked balance (end of day settled) — preferred
+- `ITAV`: Intraday available (current available)
+- `XPCD`: Expected balance
 
 **File operations**:
 - Append row: when user adds a new account
-- Update row: after each sync (update `last_synced`)
+- Update row: after each sync (update `last_synced`, `balance`, `balance_type`, `balance_date`)
 - Read all: to list configured accounts
 
 ### settings.csv

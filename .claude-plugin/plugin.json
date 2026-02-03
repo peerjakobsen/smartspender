@@ -1,6 +1,6 @@
 {
   "name": "smartspender",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Personal finance management for Danish bank customers. Sync transactions, analyze spending, detect subscriptions, and take action.",
   "author": {
     "name": "Peer Jakobsen",
