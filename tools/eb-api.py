@@ -343,28 +343,37 @@ def cmd_status(args, config):
 
 
 def cmd_accounts(args, config):
-    """List accounts from current session."""
+    """List accounts from current session (stored locally from session creation)."""
     session = load_session()
     if not session:
         print(json.dumps({'error': 'No active session. Run auth command first.'}))
         sys.exit(1)
 
-    session_id = session.get('session_id')
-    result = api_request('GET', f'/sessions/{session_id}/accounts', config)
+    accounts = session.get('accounts', [])
 
-    if 'error' in result:
-        print(json.dumps(result))
+    if not accounts:
+        print(json.dumps({
+            'error': 'No accounts found in session. Re-run auth to refresh.',
+            'hint': 'Accounts are captured during session creation. If empty, re-authenticate.'
+        }))
         sys.exit(1)
 
-    # Update stored accounts
-    accounts = result.get('accounts', [])
-    session['accounts'] = accounts
-    save_session(session)
+    # Format accounts for easier consumption
+    formatted = []
+    for acc in accounts:
+        formatted.append({
+            'uid': acc.get('uid'),
+            'name': acc.get('name'),
+            'product': acc.get('product'),
+            'iban': acc.get('account_id', {}).get('iban'),
+            'currency': acc.get('currency'),
+            'type': acc.get('cash_account_type')
+        })
 
     print(json.dumps({
         'status': 'ok',
         'account_count': len(accounts),
-        'accounts': accounts
+        'accounts': formatted
     }))
 
 
