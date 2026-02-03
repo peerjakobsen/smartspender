@@ -9,6 +9,15 @@ description: Rules for detecting recurring charges and subscriptions from transa
 
 Provides rules for detecting recurring charges (subscriptions) from categorized transaction data. Identifies services the user pays for on a regular basis.
 
+## Before Detection — Check Learnings
+
+Before applying automatic detection, read `learnings/subscriptions.md`:
+
+1. **Confirmed Subscriptions** — If a merchant is listed here, always flag it as a subscription (skip automatic detection)
+2. **Not Subscriptions** — If a merchant is listed here, never flag it as a subscription (even if it appears recurring)
+
+Only proceed with automatic detection for merchants not found in either list.
+
 ## Detection Criteria
 
 A series of transactions qualifies as a subscription when **all five** criteria are met:
@@ -129,7 +138,38 @@ If a previously detected subscription has no charge in the last expected interva
 - Change status to `paused`
 - Do not delete the row — the user may want to see it was detected
 
+## Learning from Corrections
+
+When a user corrects subscription detection, record the correction in `learnings/subscriptions.md`:
+
+**If user says something IS a subscription (false negative):**
+1. Open `learnings/subscriptions.md`
+2. Add a row to the "Confirmed Subscriptions" table:
+   - **Date**: Today's date (YYYY-MM-DD)
+   - **Pattern**: Normalized merchant pattern (e.g., `*MERCHANT*`)
+   - **Merchant**: Normalized merchant name
+   - **Frequency**: Expected frequency (monthly, yearly, etc.)
+   - **Note**: Why this is a subscription
+
+**If user says something is NOT a subscription (false positive):**
+1. Open `learnings/subscriptions.md`
+2. Add a row to the "Not Subscriptions" table:
+   - **Date**: Today's date (YYYY-MM-DD)
+   - **Pattern**: Normalized merchant pattern
+   - **Merchant**: Normalized merchant name
+   - **Reason**: Why this isn't a subscription (e.g., "one-time purchase", "irregular spending")
+
+**Example corrections:**
+```markdown
+## Confirmed Subscriptions
+| 2026-01-15 | *HEADSPACE* | Headspace | monthly | User confirmed meditation app subscription |
+
+## Not Subscriptions
+| 2026-01-15 | *AMAZON* | Amazon | Regular purchases, not a subscription |
+```
+
 ## Related Skills
 
 - See `skills/categorization/SKILL.md` for how merchants are identified
 - See `skills/sheets-schema/SKILL.md` for the subscriptions.csv structure
+- See `learnings/subscriptions.md` for user corrections to subscription detection

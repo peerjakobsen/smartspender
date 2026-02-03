@@ -191,10 +191,12 @@ Use the transaction description prefix to identify the payment method:
 
 When categorizing a transaction, check these sources in order — stop at the first match:
 
-1. **merchant-overrides.csv** — Check for a matching `raw_pattern` (confidence 1.0). These are learned from previous user corrections and take priority over everything else.
-2. **Static pattern database** — Check the merchant pattern tables above (confidence 1.0 exact / 0.8 partial).
-3. **Intelligent classification** — No pattern match, but Claude can infer category from transaction context (confidence 0.5–0.7).
-4. **Fallback** — Cannot determine category — assign to "Andet" (confidence 0.0).
+1. **learnings/categorization.md** — Check for user corrections learned from previous sessions (confidence 1.0). These take precedence over all other rules.
+2. **learnings/merchants.md** — Check for merchant name aliases to normalize the raw text before pattern matching.
+3. **merchant-overrides.csv** — Check for a matching `raw_pattern` (confidence 1.0). These are learned from previous user corrections within the same session.
+4. **Static pattern database** — Check the merchant pattern tables above (confidence 1.0 exact / 0.8 partial).
+5. **Intelligent classification** — No pattern match, but Claude can infer category from transaction context (confidence 0.5–0.7).
+6. **Fallback** — Cannot determine category — assign to "Andet" (confidence 0.0).
 
 ## Confidence Scoring
 
@@ -212,15 +214,30 @@ When `manual_override` is TRUE for a transaction, always use the user's category
 
 ## Learning from Corrections
 
-When a user manually corrects a transaction's category (setting `manual_override: TRUE` in categorized.csv), the correction should be saved to merchant-overrides.csv so future transactions from the same merchant are automatically categorized correctly.
+When a user manually corrects a transaction's category, the correction should be saved to **learnings/categorization.md** so future sessions automatically apply the learned rule.
 
-**How to extract an override from a manual correction:**
+**How to record a categorization learning:**
+1. Open `learnings/categorization.md`
+2. Append a new row to the Learnings table with:
+   - **Date**: Today's date (YYYY-MM-DD)
+   - **Pattern**: The normalized raw text pattern to match (uppercase, wildcards allowed)
+   - **Merchant**: The normalized merchant name
+   - **Category**: The user-corrected category
+   - **Subcategory**: The user-corrected subcategory
+   - **Context**: Brief note about why this correction was made
+
+**Example learning entry:**
+```markdown
+| 2026-01-15 | *NETFLIX* | Netflix | Underholdning | Streaming | User: "Netflix er underholdning, ikke abonnement" |
+```
+
+**Also update merchant-overrides.csv** for the current session:
 1. Take the corrected transaction's `raw_text` from transactions.csv
 2. Normalize it: uppercase, trim whitespace, collapse multiple spaces
 3. Use this as the `raw_pattern`
 4. Use the user-corrected `merchant`, `category`, and `subcategory` from categorized.csv
 5. Set `created_at` to the current timestamp
-6. Only append if no row with the same `raw_pattern` already exists in merchant-overrides.csv
+6. Only append if no row with the same `raw_pattern` already exists
 
 ## Ambiguous Merchants
 
