@@ -188,8 +188,138 @@ If a user paid with two methods (e.g., partly MobilePay, partly Dankort), the re
 ### Foreign Currency
 If the receipt is in a foreign currency, the amount comparison should use the DKK amount from the bank transaction, not the foreign currency amount on the receipt. This means auto-matching is less reliable for foreign receipts — flag with lower confidence (0.5-0.7 even for good matches).
 
+---
+
+## Payslip-to-Transaction Matching
+
+### Purpose
+
+Links uploaded payslips to salary deposit transactions in transactions.csv. Uses net_salary amount, deposit timing, and description patterns.
+
+### Matching Signals
+
+| Signal | Weight | Rule |
+|--------|--------|------|
+| Amount | Primary | Net salary must match transaction amount within ±1% |
+| Date | Primary | Transaction date must be within 5 days after pay_period end |
+| Type | Required | Transaction must be CRDT (credit/income) |
+| Description | Secondary | Should contain "Løn", "Salary", or employer name |
+
+### Date Window
+
+Salary is typically deposited at the end of the pay period or within the first few days of the next month:
+
+- Pay period: 2026-01 (January)
+- Valid transaction dates: 2026-01-25 to 2026-02-05
+
+**Why this window**: Most Danish employers pay on the last working day of the month, but some pay on a fixed date (e.g., 25th) or in the first days of the following month.
+
+### Amount Comparison
+
+Payslips store net_salary as a positive number. Salary transactions are positive (CRDT).
+
+**Formula**: `|payslip_net - transaction_amount| / payslip_net <= 0.01`
+
+**Why ±1%**: Minor differences can occur from rounding or small adjustments not shown on the payslip.
+
+### Description Patterns
+
+Look for these patterns in transaction descriptions:
+
+| Pattern | Example | Confidence Boost |
+|---------|---------|------------------|
+| "Løn" | "Løn januar", "LOEN FRA..." | +0.1 |
+| "Salary" | "Salary payment" | +0.1 |
+| Employer name | "Teknologi A/S", "TEKNOLOGI" | +0.15 |
+| Period reference | "Jan 2026", "202601" | +0.05 |
+
+### Confidence Scoring
+
+| Scenario | Confidence | Action |
+|----------|------------|--------|
+| 1 match: amount + date + description patterns | 1.0 | Auto-link |
+| 1 match: amount + date (no description match) | 0.85 | Auto-link |
+| 2-3 matches: amount + date | 0.7 | Present candidates to user |
+| Amount matches but date outside window | 0.4 | Present as weak candidate |
+| No amount match | 0.0 | Unmatched |
+
+### Matching Workflow
+
+#### Step 1: Determine Search Window
+
+Calculate the expected transaction date range:
+- Start: 5 days before pay_period end (e.g., Jan 25 for January payslip)
+- End: 5 days after pay_period end (e.g., Feb 5 for January payslip)
+
+#### Step 2: Search Candidates
+
+Read transactions.csv and filter for transactions where:
+- `amount` is positive (income)
+- `|amount - net_salary| / net_salary <= 0.01`
+- `date` is within the calculated window
+
+#### Step 3: Score Candidates
+
+For each candidate, calculate confidence:
+1. Start with 0.8 (amount + date match)
+2. Add 0.1 if "Løn" or "Salary" in description
+3. Add 0.05 if employer name appears in description
+4. Add 0.05 if date is last working day of month
+
+Cap at 1.0.
+
+#### Step 4: Decide
+
+| Candidates | Best Confidence | Action |
+|------------|-----------------|--------|
+| 0 | — | Store as `unmatched` |
+| 1 | >= 0.8 | Auto-link |
+| 1 | < 0.8 | Present to user for confirmation |
+| 2+ | any | Present all candidates to user |
+
+### Already-Matched Transactions
+
+Before matching, check if the candidate transaction already has a payslip linked:
+1. Read payslips.csv
+2. Check if any row has the candidate's tx_id as `transaction_id`
+3. If yes, warn: "Denne transaktion ({date}, {amount} kr) har allerede en lønseddel ({payslip_id}). Vil du tilføje endnu en?"
+
+A transaction should typically have only one payslip, but users may have corrections or supplementary payments.
+
+### Examples
+
+#### Example 1: Clear Salary Match
+
+**Payslip**: Teknologi A/S, January 2026, net_salary: 25,245.35 kr
+
+**Transactions search** (Jan 25 - Feb 5, amount 24,993 - 25,498):
+```
+tx-uuid-045  2026-01-31  25245.35  "Løn Teknologi A/S januar"
+```
+
+**Result**: 1 candidate, confidence 1.0 (amount exact + date in window + "Løn" + employer name)
+**Action**: Auto-link
+
+#### Example 2: Multiple Salary Candidates
+
+**Payslip**: Startup ApS, January 2026, net_salary: 28,500.00 kr
+
+**Transactions search**:
+```
+tx-uuid-050  2026-01-31  28500.00  "LOEN"
+tx-uuid-051  2026-02-01  28500.00  "Overførsel"
+```
+
+**Candidate 1**: confidence 0.9 (amount exact + last day of month + "LOEN")
+**Candidate 2**: confidence 0.8 (amount exact + date in window, no description match)
+
+**Action**: Present both to user
+
+---
+
 ## Related Skills
 
-- See `skills/data-schemas/SKILL.md` for the receipts.csv, receipt-items.csv, and complete data file structure
+- See `skills/data-schemas/SKILL.md` for the receipts.csv, payslips.csv, and complete data file structure
 - See `skills/document-parsing/SKILL.md` for how receipt data is extracted
+- See `skills/payslip-parsing/SKILL.md` for how payslip data is extracted
 - See `skills/categorization/SKILL.md` for merchant name normalization rules

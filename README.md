@@ -16,6 +16,7 @@ A Claude Cowork plugin that turns Danish bank statements into actionable financi
 - **Cancel unwanted subscriptions** with guided browser automation
 - **Generate reports** with monthly breakdowns, trends, and savings suggestions
 - **Upload receipts** and get item-level spending breakdowns
+- **Track payslips** for accurate pension tracking and salary growth analysis
 - **Financial advice** based on Danish personal finance best practices
 
 ## Requirements
@@ -27,7 +28,7 @@ A Claude Cowork plugin that turns Danish bank statements into actionable financi
 ## Installation
 
 1. Download or clone this repo
-2. Package the plugin: `zip -r smartspender.zip .claude-plugin/ commands/ skills/ banks/ subscriptions/ invoice-knowledge/`
+2. Package the plugin: `zip -r smartspender.zip .claude-plugin/ commands/ skills/ banks/ subscriptions/ invoice-knowledge/ payslip-knowledge/`
 3. Upload `smartspender.zip` as a plugin in Claude Cowork
 4. Run `/smartspender:add-account` to set up Enable Banking and connect your bank
 
@@ -46,6 +47,8 @@ A Claude Cowork plugin that turns Danish bank statements into actionable financi
 | `/smartspender:advice` | Personalized financial advice |
 | `/smartspender:receipt upload` | Upload and process a receipt |
 | `/smartspender:receipt email` | Scan Gmail for receipt emails |
+| `/smartspender:payslip upload` | Upload a payslip for pension tracking |
+| `/smartspender:payslip history` | View salary and pension trends |
 
 ## Supported Banks
 

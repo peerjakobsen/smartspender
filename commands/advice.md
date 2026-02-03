@@ -26,12 +26,23 @@ None.
    - **subscriptions.csv**: Active subscriptions
    - **monthly-summary.csv**: Monthly totals and trends
    - **action-log.csv**: Previous actions taken
+   - **payslips.csv**: Payslip data (if exists) for accurate income and pension info
+
+1b. If payslips.csv exists and has data:
+   - Load most recent payslip for the current/previous month
+   - Extract: gross_salary, net_salary, pension_total, pension_pct
+   - Set `has_payslip_data = true`
+   - Use gross_salary for income-based calculations instead of transaction-derived income
 
 2. Calculate key metrics:
-   - **Monthly income**: Sum of Indkomst category
+   - **Monthly income**:
+     - If has_payslip_data: Use gross_salary from payslip
+     - Otherwise: Sum of Indkomst category (net deposits)
    - **Monthly expenses**: Sum of all spending categories
    - **Net cash flow**: Income minus expenses
-   - **Savings rate**: Net cash flow / Income (as percentage)
+   - **Savings rate**:
+     - If has_payslip_data: (gross_salary - expenses) / gross_salary (true savings rate)
+     - Otherwise: Net cash flow / Income (approximate)
    - **Subscription burden**: Total subscriptions / Income (as percentage)
    - **Essential vs discretionary split**: (Bolig + Dagligvarer + Transport) vs rest
 
@@ -47,10 +58,14 @@ None.
    - High interest payments visible in transactions
    - Cannot fully determine without user input
 
-   **Step 3: Pension** — Look for indicators:
-   - Pension contributions in transactions (PBS to pension companies)
-   - Calculate if visible contributions approach 15% of income
-   - Ask: "Indbetaler du minimum 15% af din bruttoløn til pension?"
+   **Step 3: Pension** — Assess pension status:
+   - If has_payslip_data: Use pension_pct from payslip (accurate)
+     - If pension_pct >= 15%: ✅ "Du indbetaler {pension_pct}% til pension"
+     - If pension_pct < 15%: ⚠️ Flag pension gap
+   - If no payslip data: Look for indicators in transactions:
+     - Pension contributions in transactions (PBS to pension companies)
+     - Calculate if visible contributions approach 15% of income
+     - Ask: "Indbetaler du minimum 15% af din bruttoløn til pension? Upload en lønseddel med `/smartspender:payslip upload` for at få et præcist tal."
 
    **Step 4: Formue** — Reached if steps 0-3 are complete
 
@@ -68,6 +83,12 @@ None.
    - Spending patterns and anomalies
    - Subscription optimization opportunities
    - Category-specific insights
+   - Pension gap (if has_payslip_data and pension_pct < 15%):
+     - Calculate cost to increase: extra_pension = gross_salary * (0.15 - pension_pct/100)
+     - After-tax cost: extra_pension * (1 - marginal_tax_rate) where marginal_tax_rate ≈ 0.42
+     - Add recommendation: "Øg pensionen til 15%"
+   - Salary stagnation (if multiple payslips and < 2% growth over 12+ months):
+     - Add recommendation: "Overvej lønforhandling"
 
 6. Reference `skills/danish-finance-guide/SKILL.md` for:
    - Specific advice text
@@ -115,6 +136,35 @@ None.
 ### Baseret på dit forbrug
 
 {category_insights}
+
+{IF has_payslip_data}
+### Indkomstfordeling (fra lønseddel)
+
+| Post | Beløb | % af bruttoløn |
+|------|-------|----------------|
+| Bruttoløn | {gross_salary} kr | 100% |
+| AM-bidrag | {am_bidrag} kr | {am_pct}% |
+| A-skat | {a_skat} kr | {skat_pct}% |
+| Pension (samlet) | {pension_total} kr | {pension_pct}% |
+| Til rådighed | {net_salary} kr | {net_pct}% |
+
+{IF pension_pct < 15}
+⚠️ **Pensionsgab**: Du indbetaler {pension_pct}% — anbefalet er minimum 15%.
+En øgning til 15% vil koste dig ca. {extra_cost_after_tax} kr/måned efter skat.
+{/IF}
+{/IF}
+
+{IF multiple_payslips}
+### Lønudvikling
+
+Baseret på {payslip_count} lønsedler fra {first_period} til {last_period}:
+- Bruttoløn ændring: {salary_change_pct}%
+- Gennemsnitlig pension: {avg_pension_pct}%
+
+{IF salary_stagnation}
+📉 Din løn har ikke ændret sig væsentligt i {months} måneder. Overvej om det er tid til lønforhandling.
+{/IF}
+{/IF}
 
 ---
 *Baseret på privatøkonomisk rutediagram for Danmark. Dette er generel vejledning — overvej at søge professionel rådgivning for din specifikke situation.*
@@ -181,6 +231,9 @@ After presenting the advice, be ready for follow-up questions:
 | "Hvad med pension?" | `skills/danish-finance-guide/SKILL.md` → Step 3 + Investment Guide |
 | "Jeg har 10.000 kr i nødopsparing" | Update assessment, move to Step 2 focus |
 | "Jeg vil gerne FIRE" | `skills/danish-finance-guide/SKILL.md` → Investment Guide → FIRE section |
+| "Hvad koster det at øge pensionen?" | Calculate from payslip data: extra_pension * (1 - 0.42) |
+| "Upload en lønseddel" | Redirect to `/smartspender:payslip upload` |
+| "Vis min lønhistorik" | Redirect to `/smartspender:payslip history` |
 
 ## Learning Integration
 
@@ -212,3 +265,5 @@ This allows future advice sessions to skip questions already answered.
 - `/smartspender:report` — Detailed monthly breakdown
 - `/smartspender:subscriptions` — Deep dive on subscriptions
 - `/smartspender:overview` — Quick spending summary
+- `/smartspender:payslip upload` — Add payslip for accurate pension tracking
+- `/smartspender:payslip history` — View salary and pension trends

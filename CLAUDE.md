@@ -11,6 +11,7 @@ A Claude Cowork plugin for personal finance management. Danish bank customers. F
 - `banks/` -- Bank adapter (Enable Banking API)
 - `subscriptions/` -- Subscription service cancellation instructions
 - `invoice-knowledge/` -- Learned vendor-specific invoice parsers
+- `payslip-knowledge/` -- Learned employer-specific payslip parsers
 - `tools/` -- Helper scripts (eb-api.py for Enable Banking API). Not included in plugin zip.
 
 ## Development Workflow
@@ -21,7 +22,7 @@ A Claude Cowork plugin for personal finance management. Danish bank customers. F
 Plan    → /create-spec to design the command or skill
 Author  → Write the markdown files following agent-os/standards/
 Commit  → Git commit so you can roll back
-Package → zip -r smartspender.zip .claude-plugin/ commands/ skills/ banks/ subscriptions/
+Package → zip -r smartspender.zip .claude-plugin/ commands/ skills/ banks/ subscriptions/ payslip-knowledge/
 Upload  → Ask the user to upload smartspender.zip as a plugin in Claude Cowork
 Test    → Invoke the command in Cowork, watch what happens
 Log     → Record what worked and what broke in TEST_LOG.md

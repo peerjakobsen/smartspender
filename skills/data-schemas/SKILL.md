@@ -493,15 +493,107 @@ raw_pattern,merchant,category,subcategory,created_at
 
 ---
 
-## 4. File Relationships
+## 3. Payslip Schema
+
+### Purpose
+
+Defines the CSV file structure for storing payslip data extracted from Danish lønsedler. Enables accurate pension tracking and income analysis based on actual gross salary rather than net deposits.
+
+### payslips.csv
+
+Stores one row per uploaded payslip with extracted salary breakdown and pension data.
+
+**Header row**:
+```
+payslip_id,pay_period,employer,employer_id,gross_salary,a_skat,am_bidrag,pension_employer,pension_employee,pension_total,pension_pct,atp,feriepenge,net_salary,benefits_json,transaction_id,file_reference,created_at
+```
+
+| Column | Type | Description |
+|--------|------|-------------|
+| payslip_id | string | Unique payslip ID (`ps-` prefix + 8 hex chars, e.g. `ps-a1b2c3d4`) |
+| pay_period | string | Pay period in YYYY-MM format (e.g. `2026-01`) |
+| employer | string | Company name as shown on payslip |
+| employer_id | string | Normalized employer ID (lowercase, no spaces) |
+| gross_salary | number | Bruttoløn — total earnings before deductions |
+| a_skat | number | Income tax withheld |
+| am_bidrag | number | Labor market contribution (8% of gross) |
+| pension_employer | number | Employer's pension contribution |
+| pension_employee | number | Employee's pension contribution |
+| pension_total | number | Combined pension (employer + employee) |
+| pension_pct | number | Pension as percentage of gross salary |
+| atp | number | ATP contribution |
+| feriepenge | number | Holiday pay accrued this period |
+| net_salary | number | Nettoløn — amount deposited to bank |
+| benefits_json | string | JSON string of additional benefits (sundhedsforsikring, fritvalgskonto, etc.) |
+| transaction_id | string | Matched tx_id from transactions.csv (empty if unmatched) |
+| file_reference | string | Local archive path (e.g. `payslips/ps-a1b2c3d4.pdf`) |
+| created_at | datetime | When the payslip was processed (YYYY-MM-DD HH:MM:SS) |
+
+**File operations**:
+- Append row: after payslip extraction and validation completes
+- Read all: for deduplication check before appending
+- Read filtered by pay_period: to analyze pension trends over time
+- Read filtered by transaction_id: to find payslip linked to a salary transaction
+- Update row: when user corrects extracted data
+
+### ID Generation
+
+#### Payslip IDs
+- Format: `ps-` + 8 random hex characters
+- Example: `ps-a1b2c3d4`, `ps-f9e8d7c6`
+- Must be unique across all rows in payslips.csv
+
+### Payslip Deduplication
+
+Before appending a new payslip, check for duplicates using two fields:
+- `employer_id` — same normalized employer
+- `pay_period` — same month
+
+If both match an existing payslip, warn the user: "Denne lønseddel ligner en der allerede er registreret ({payslip_id} for {pay_period}). Vil du tilføje den alligevel?"
+
+### File Archiving
+
+Payslip images and PDFs are saved to a local `payslips/` directory in the working directory. The directory is created automatically on first use.
+
+#### Naming Convention
+- Format: `payslips/{payslip_id}.{ext}`
+- Extension preserved from the original file (jpg, png, pdf)
+- Example: `payslips/ps-a1b2c3d4.pdf`
+
+#### Archive Rules
+- Save the file immediately after generating the payslip_id, before writing CSV row
+- The `file_reference` column stores the relative path (e.g. `payslips/ps-a1b2c3d4.pdf`)
+- **Privacy**: Never store CPR numbers — mask any detected CPR in logs
+
+### Payslip Examples
+
+#### Standard Monthly Payslip
+
+**payslips.csv row**:
+```
+ps-a1b2c3d4,2026-01,Teknologi A/S,teknologi,42000.00,11200.00,3360.00,4200.00,2100.00,6300.00,15.00,94.65,5250.00,25245.35,"{""sundhedsforsikring"":150}",tx-uuid-045,payslips/ps-a1b2c3d4.pdf,2026-02-01 14:30:00
+```
+
+#### Payslip with Bonus
+
+**payslips.csv row**:
+```
+ps-b2c3d4e5,2026-03,Startup ApS,startup,55000.00,16500.00,4400.00,5500.00,2750.00,8250.00,15.00,94.65,6875.00,31255.35,"{""bonus"":10000}",tx-uuid-089,payslips/ps-b2c3d4e5.pdf,2026-04-02 10:15:00
+```
+
+---
+
+## 5. File Relationships
 
 ```
 transactions.csv --[tx_id]--> categorized.csv
 transactions.csv --[tx_id]--> receipts.csv (via transaction_id)
+transactions.csv --[tx_id]--> payslips.csv (via transaction_id)
 receipts.csv --[receipt_id + date]--> receipt-items-YYYY-MM.csv
 categorized.csv --[merchant + is_recurring]--> subscriptions.csv
 categorized.csv --[month + category]--> monthly-summary.csv
 merchant-overrides.csv <-- learned from manual corrections in categorized.csv
+payslips.csv --> advice command (pension_pct for Step 3 assessment)
 All commands --> action-log.csv
 accounts.csv <--> Sync commands (last_synced updated)
 ```
@@ -511,5 +603,6 @@ accounts.csv <--> Sync commands (last_synced updated)
 ## Related Skills
 
 - See `skills/document-parsing/SKILL.md` for extraction rules and product subcategories
-- See `skills/transaction-matching/SKILL.md` for how receipts are matched to transactions
+- See `skills/payslip-parsing/SKILL.md` for payslip extraction rules and validation
+- See `skills/transaction-matching/SKILL.md` for how receipts and payslips are matched to transactions
 - See `skills/categorization/SKILL.md` for merchant-level categories
