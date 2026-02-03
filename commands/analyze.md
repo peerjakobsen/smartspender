@@ -19,6 +19,12 @@ None.
 
 ## Workflow
 
+0. Load user memory skill:
+   - Load `skills/user-memory/SKILL.md` for learning detection
+   - Read `learnings/categorization.md` for previously learned category corrections
+   - Read `learnings/subscriptions.md` for subscription confirmations/denials
+   - Read `learnings/merchants.md` for merchant aliases
+
 1. Read all transactions from transactions.csv
 2. Read existing categorized transactions from categorized.csv (by tx_id)
 3. Read merchant-overrides.csv (if it exists) — these are learned categorization rules from previous user corrections
@@ -71,6 +77,25 @@ Nye abonnementer fundet:
 - Spotify: 179 kr/måned
 - ...
 ```
+
+## User Memory Integration
+
+When user provides corrections during analysis:
+
+1. **Category correction**: "Det er ikke Shopping, det er Hobby"
+   - Detect using `skills/user-memory/SKILL.md` trigger patterns
+   - Write to `learnings/categorization.md`
+   - Confirm: "Forstået. Jeg kategoriserer det som Hobby fremover."
+
+2. **Subscription correction**: "Det er (ikke) et abonnement"
+   - Detect subscription confirmation/denial pattern
+   - Write to `learnings/subscriptions.md` (Confirmed or Not sections)
+   - Confirm: "Noteret. Jeg husker det."
+
+3. **Merchant alias**: "NETTO FO er bare Netto"
+   - Detect merchant alias pattern
+   - Write to `learnings/merchants.md`
+   - Confirm: "Noteret. Jeg bruger Netto fremover."
 
 ## Error Cases
 

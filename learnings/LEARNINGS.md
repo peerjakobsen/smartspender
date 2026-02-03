@@ -2,12 +2,20 @@
 
 This directory stores corrections and preferences learned from user conversations.
 
+## Automatic Learning
+
+The `skills/user-memory/SKILL.md` automatically detects and persists user information:
+- Triggers on patterns like "Jeg har X kr i opsparing", "Det er ikke Y, det er Z"
+- Writes to the appropriate file based on learning type
+- Confirms briefly without interrupting flow
+
 ## How to Use (for Claude)
 
-1. **Read relevant learning files at the start of workflows** — before applying static rules
-2. **Apply learnings BEFORE static rules** — learnings take precedence over defaults
-3. **When user corrects something, append to the appropriate file** — use the format specified in each file
-4. **Always add timestamp and brief context** — so we can trace why a rule exists
+1. **Load user-memory skill at workflow start** — enables automatic learning detection
+2. **Read relevant learning files at the start of workflows** — before applying static rules
+3. **Apply learnings BEFORE static rules** — learnings take precedence over defaults
+4. **When user corrects something, use user-memory skill** — it handles formatting and file selection
+5. **Always add timestamp and brief context** — so we can trace why a rule exists
 
 ## Files
 
@@ -17,7 +25,13 @@ This directory stores corrections and preferences learned from user conversation
 | `subscriptions.md` | Subscription detection rules (confirmed subs, false positives) |
 | `merchants.md` | Merchant name normalization and aliases |
 | `receipts.md` | Receipt/invoice extraction preferences |
-| `preferences.md` | User output format and behavior preferences |
+| `preferences.md` | User financial situation, personal context, and output preferences |
+
+## Related Skill
+
+| Skill | Purpose |
+|-------|---------|
+| `skills/user-memory/SKILL.md` | Auto-detects and persists user-provided information |
 
 ## When to Record Learnings
 

@@ -1,13 +1,28 @@
 # User Preferences
 
-Output format and behavior preferences learned from user feedback.
+Persistent user information learned from conversations. Check this file at workflow start to skip questions already answered.
 
 ## How to Use
 
-1. Read this file at the start of any output-generating workflow
-2. Apply these preferences to all output formatting
-3. When user states a preference, append it here
+1. Read this file at the start of any workflow that needs user context
+2. Check relevant sections before asking questions
+3. If information exists, use stored value instead of asking
+4. When user provides new information, append using `skills/user-memory/SKILL.md`
 
-## Preferences
+## Financial Situation
 
-<!-- Claude appends preferences below this line -->
+Emergency fund, debt status, pension, and income information.
+
+<!-- Claude appends financial situation learnings below this line -->
+
+## Personal Context
+
+Employer, goals, life situation, and other personal context.
+
+<!-- Claude appends personal context learnings below this line -->
+
+## Output Preferences
+
+Display format, language, and detail level preferences.
+
+<!-- Claude appends output preferences below this line -->

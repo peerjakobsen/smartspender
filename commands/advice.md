@@ -21,6 +21,11 @@ None.
 
 ## Workflow
 
+0. Load user memory skill and read stored learnings:
+   - Load `skills/user-memory/SKILL.md` for learning detection
+   - Read `learnings/preferences.md` for previously stored user information
+   - Note which questions can be skipped (emergency_fund, pension, debt, employer, etc.)
+
 1. Read data from CSV files:
    - **categorized.csv**: Spending by category
    - **subscriptions.csv**: Active subscriptions
@@ -50,22 +55,30 @@ None.
 
    **Step 0: Budget** — Always ✅ (user is tracking spending via SmartSpender)
 
-   **Step 1: Nødopsparing** — Cannot determine from transaction data alone. Ask user:
-   - "Har du en nødopsparing på mindst 10.000 kr eller 1 måneds udgifter?"
+   **Step 1: Nødopsparing** — Cannot determine from transaction data alone.
+   - First check `learnings/preferences.md` for existing emergency_fund entry
+   - If found: Use stored value, skip question
+   - If not found: Ask user: "Har du en nødopsparing på mindst 10.000 kr eller 1 måneds udgifter?"
 
    **Step 2: Gæld** — Look for indicators:
-   - PBS payments to known lenders (check categorization)
-   - High interest payments visible in transactions
+   - First check `learnings/preferences.md` for existing debt entry
+   - If found: Use stored debt information
+   - If not found: Look for indicators in transactions:
+     - PBS payments to known lenders (check categorization)
+     - High interest payments visible in transactions
    - Cannot fully determine without user input
 
    **Step 3: Pension** — Assess pension status:
    - If has_payslip_data: Use pension_pct from payslip (accurate)
      - If pension_pct >= 15%: ✅ "Du indbetaler {pension_pct}% til pension"
      - If pension_pct < 15%: ⚠️ Flag pension gap
-   - If no payslip data: Look for indicators in transactions:
-     - Pension contributions in transactions (PBS to pension companies)
-     - Calculate if visible contributions approach 15% of income
-     - Ask: "Indbetaler du minimum 15% af din bruttoløn til pension? Upload en lønseddel med `/smartspender:payslip upload` for at få et præcist tal."
+   - If no payslip data:
+     - First check `learnings/preferences.md` for existing pension entry
+     - If found: Use stored pension percentage
+     - If not found: Look for indicators in transactions:
+       - Pension contributions in transactions (PBS to pension companies)
+       - Calculate if visible contributions approach 15% of income
+       - Ask: "Indbetaler du minimum 15% af din bruttoløn til pension? Upload en lønseddel med `/smartspender:payslip upload` for at få et præcist tal."
 
    **Step 4: Formue** — Reached if steps 0-3 are complete
 
@@ -220,6 +233,17 @@ Med 18,6% er du tæt på målet. Find 500 kr/måned ekstra ved at:
 *Baseret på privatøkonomisk rutediagram for Danmark. Dette er generel vejledning — overvej at søge professionel rådgivning for din specifikke situation.*
 ```
 
+## User Memory Integration
+
+After each user response during the advice session:
+
+1. Check if response matches any trigger pattern in `skills/user-memory/SKILL.md`
+2. If learnable information detected:
+   - Extract the structured data
+   - Write to the appropriate learnings file
+   - Confirm briefly: "Noteret: {summary}. Jeg husker det."
+3. Continue with the advice flow
+
 ## Interactive Follow-up
 
 After presenting the advice, be ready for follow-up questions:
@@ -237,13 +261,16 @@ After presenting the advice, be ready for follow-up questions:
 
 ## Learning Integration
 
-When user provides information about their situation, record it in `learnings/preferences.md`:
+When user provides information about their situation, use `skills/user-memory/SKILL.md` to persist it.
+
+**Entry format for learnings/preferences.md:**
 
 ```markdown
 ### 2026-01-15
-**Trigger**: User confirmed nødopsparing status
-**Rule**: User has emergency fund of 15.000 kr
-**Context**: Confirmed during /smartspender:advice
+**Category**: financial_situation
+**Trigger**: "Jeg har 15.000 kr i nødopsparing"
+**Rule**: emergency_fund = 15000 kr
+**Source**: /smartspender:advice
 ```
 
 This allows future advice sessions to skip questions already answered.
