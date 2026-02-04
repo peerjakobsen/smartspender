@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Read version
         id: version
@@ -36,12 +38,38 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create release
+      - name: Find previous tag
+        id: prev_tag
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            smartspender.zip \
-            --title "SmartSpender ${{ steps.version.outputs.tag }}" \
-            --generate-notes \
-            --latest
+          PREV=$(git tag --sort=-v:refname | grep -v "${{ steps.version.outputs.tag }}" | head -1)
+          echo "tag=${PREV}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREV_TAG: ${{ steps.prev_tag.outputs.tag }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          cat > /tmp/release-notes.md <<EOF
+          ## Install
+
+          ### Option A: Cowork plugin (upload zip)
+          1. Download \`smartspender.zip\` from Assets below
+          2. Open Claude Desktop → Cowork tab → Plugins
+          3. Click "Upload plugin" and select \`smartspender.zip\`
+          4. Type \`/\` to see available SmartSpender commands
+
+          ### Option B: Claude Code marketplace
+          \`\`\`
+          /plugin marketplace add peerjakobsen/SmartSpender
+          /plugin install smartspender@smartspender
+          \`\`\`
+
+          **Full Changelog**: https://github.com/peerjakobsen/smartspender/compare/${PREV_TAG}...${TAG}
+          EOF
+          sed -i 's/^          //' /tmp/release-notes.md
+          gh release create "$TAG" \
+            smartspender.zip \
+            --title "SmartSpender $TAG" \
+            --notes-file /tmp/release-notes.md \
+            --latest
