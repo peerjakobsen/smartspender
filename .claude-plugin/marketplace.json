@@ -10,7 +10,10 @@
   "plugins": [
     {
       "name": "smartspender",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "peerjakobsen/SmartSpender"
+      },
       "description": "Sync transactions, analyze spending, detect subscriptions, and take action.",
       "version": "1.8.0",
       "author": {
