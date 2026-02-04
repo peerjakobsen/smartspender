@@ -23,7 +23,7 @@ If `all` (or no argument), syncs all active accounts in accounts.csv.
 - Bank account added via `/smartspender:add-account`
 - Enable Banking configured and session active
 
-> **Vigtigt:** Enable Banking API-kald koerer lokalt via `eb-api.py` — Cowork kan ikke koere dem direkte. Denne kommando genererer alle terminalkommandoer paa een gang, brugeren koerer dem, og Claude laeser resultatfilerne direkte.
+> **Vigtigt:** Enable Banking API-kald koerer lokalt via `eb-api.py` — Cowork kan ikke koere dem direkte. Denne kommando genererer alle terminalkommandoer paa een gang (inkl. en combine+clipboard kommando). Brugeren koerer dem i terminalen og indsaetter resultatet med Cmd+V.
 
 ## File Naming Convention
 
@@ -52,9 +52,9 @@ All temporary JSON files are written to `~/Documents/SmartSpender/`.
 
 ### Step 2: Present batch commands
 
-Build a single code block with all commands. Always start with `mkdir -p` to ensure the directory exists, then `status`, then `transactions` per account, then `balances` per account.
+Build a single code block with all commands. Always start with `mkdir -p` to ensure the directory exists, then `status`, then `transactions` per account, then `balances` per account. End with the combine+clipboard command that merges all JSON files and copies to clipboard.
 
-Tell user: "Koer disse kommandoer i din terminal:"
+Tell user: "Koer disse kommandoer i din terminal, og indsaet derefter resultatet i chatten med Cmd+V."
 
 ```bash
 mkdir -p ~/Documents/SmartSpender
@@ -63,26 +63,34 @@ python3 ~/projects/SmartSpender/tools/eb-api.py transactions --account <uid1> --
 python3 ~/projects/SmartSpender/tools/eb-api.py transactions --account <uid2> --from <date2> > ~/Documents/SmartSpender/eb-transactions-<slug2>.json
 python3 ~/projects/SmartSpender/tools/eb-api.py balances --account <uid1> > ~/Documents/SmartSpender/eb-balances-<slug1>.json
 python3 ~/projects/SmartSpender/tools/eb-api.py balances --account <uid2> > ~/Documents/SmartSpender/eb-balances-<slug2>.json
+python3 -c "
+import json, glob, os
+d = {}
+for f in sorted(glob.glob(os.path.expanduser('~/Documents/SmartSpender/eb-*.json'))):
+    k = os.path.basename(f)[:-5]
+    try:
+        d[k] = json.load(open(f))
+    except Exception as e:
+        d[k] = {'_error': str(e)}
+print(json.dumps(d))
+" | pbcopy
+echo "Data kopieret til udklipsholder - indsaet i chatten med Cmd+V"
 ```
 
 Replace `<uid>`, `<date>`, and `<slug>` with actual values from accounts.csv.
 
-Follow with: "Sig til naar kommandoerne er koert."
+### Step 3: Parse combined JSON from clipboard
 
-Then **wait for the user to confirm** before proceeding.
-
-### Step 3: Read and validate status
-
-1. **[USER ACTION]**: User confirms commands are done
-2. Read `~/Documents/SmartSpender/eb-status.json` via Filesystem tool
-3. If file not found: "Filen `eb-status.json` blev ikke fundet. Tjek at kommandoen koerte korrekt."
-4. If file is empty: "Filen `eb-status.json` er tom. Koer kommandoen igen."
-5. Parse the JSON:
-   - If `status` is `expired`: "Samtykke er udloebet. Koer denne kommando i terminalen for at forny:" `python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <bank>` — delete all `eb-*.json` files from `~/Documents/SmartSpender/`, then stop
-   - If `status` is `no_session`: "Ingen aktiv session. Koer `/smartspender:add-account` for at oprette forbindelse." — delete all `eb-*.json` files, then stop
+1. **[USER ACTION]**: User pastes the combined JSON (from clipboard via Cmd+V)
+2. If pasted text is not valid JSON: "Det indsatte er ikke gyldigt JSON. Koer kommandoerne igen og proev Cmd+V."
+3. The combined JSON is an object with keys like `eb-status`, `eb-transactions-lonkonto`, `eb-balances-lonkonto`, etc.
+4. If a key has an `_error` property: report the error, skip that data source
+5. **Validate status** from the `eb-status` key:
+   - If key missing: "Status-data mangler. Tjek at kommandoen koerte korrekt."
+   - If `status` is `expired`: "Samtykke er udloebet. Koer denne kommando i terminalen for at forny:" `python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <bank>` — suggest cleanup: `rm ~/Documents/SmartSpender/eb-*.json`, then stop
+   - If `status` is `no_session`: "Ingen aktiv session. Koer `/smartspender:add-account` for at oprette forbindelse." — suggest cleanup, then stop
    - If `days_remaining` < 7: warn "Samtykke udloeber om {days} dage. Overvej at forny snart."
    - Check `fetches_today` for rate limit info (used per-account in Step 4)
-6. Delete `eb-status.json` after successful processing
 
 ### Step 4: Process each account
 
@@ -91,13 +99,12 @@ For each active Enable Banking account in accounts.csv:
 #### 4a. Check rate limit
 - If `fetches_today` from status is 4/4: "PSD2-graense naaet (4/4 daglige forespoergsler) for konto {account_name}. Proev igen i morgen." Skip this account.
 
-#### 4b. Read and process transactions
-1. Read `~/Documents/SmartSpender/eb-transactions-{slug}.json` via Filesystem tool
+#### 4b. Process transactions
+1. Look up key `eb-transactions-{slug}` in the combined JSON
 2. Handle errors:
-   - File not found: "Filen `eb-transactions-{slug}.json` blev ikke fundet. Tjek at kommandoen koerte korrekt." — skip this account
-   - Empty file: "Filen `eb-transactions-{slug}.json` er tom. Koer kommandoen igen." — skip this account
-   - Invalid JSON: "Filen `eb-transactions-{slug}.json` indeholder ugyldigt JSON." — keep the file for inspection, skip this account
-   - API error in JSON: report the error, skip this account
+   - Key missing: "Data for `{account_name}` mangler. Tjek at kommandoen koerte korrekt." — skip this account
+   - Key has `_error` value: report the error, skip this account
+   - API error in data: report the error, skip this account
 3. Filter transactions: only include those with `status: BOOK`
 4. Map each transaction to common schema per `banks/enable-banking/export-format.md`:
    - `date` <-- `booking_date` (already YYYY-MM-DD)
@@ -107,17 +114,15 @@ For each active Enable Banking account in accounts.csv:
    - `raw_text` <-- `remittance_information` joined with space
    - `bank` <-- `enable-banking`
    - `account` <-- `eb_account_uid`
-5. Delete the transactions JSON file after successful processing
 
-#### 4c. Read and process balances
-1. Read `~/Documents/SmartSpender/eb-balances-{slug}.json` via Filesystem tool
-2. Parse the JSON. Extract balance using priority:
+#### 4c. Process balances
+1. Look up key `eb-balances-{slug}` in the combined JSON
+2. Parse the data. Extract balance using priority:
    1. Prefer `CLBD` (closing booked balance)
    2. Fall back to `ITAV` (intraday available) if CLBD not present
    3. Fall back to `XPCD` (expected) if neither present
 3. Store: `balance` = amount, `balance_type` = type code, `balance_date` = reference_date or today
-4. If balance fetch fails (file missing, empty, parse error, rate limit): continue without balance update (non-blocking)
-5. Delete the balances JSON file after successful processing
+4. If balance data missing, has `_error`, or parse error: continue without balance update (non-blocking)
 
 ### Step 5: Normalize, deduplicate, store
 
@@ -143,11 +148,13 @@ For each active Enable Banking account in accounts.csv:
    - `status`: completed
    - `details`: "{count} new transactions ({date_range})"
 
-## Cleanup Rules
+## Cleanup
 
-- Delete each JSON file immediately after successful processing
-- If processing fails with invalid JSON: **keep** the file so the user can inspect it
-- If session is expired or no_session: delete all `eb-*.json` files from `~/Documents/SmartSpender/`
+JSON files remain on disk in `~/Documents/SmartSpender/` for debugging. After a successful sync, suggest cleanup:
+
+"Ryd op med: `rm ~/Documents/SmartSpender/eb-*.json`"
+
+Cleanup is optional and user-initiated — Claude does not delete the files.
 
 ## Output
 
@@ -182,18 +189,18 @@ If balance fetch failed for an account, omit it from the balance list (non-block
 | Error | Message |
 |-------|---------|
 | No accounts configured | "Ingen konti konfigureret. Koer /smartspender:add-account foerst." |
-| EB session expired | "Samtykke er udloebet. Koer `python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <bank>` i terminalen for at forny." |
+| EB session expired | "Samtykke er udloebet. Koer `python3 ~/projects/SmartSpender/tools/eb-api.py auth --bank <bank>` i terminalen for at forny." + suggest cleanup: `rm ~/Documents/SmartSpender/eb-*.json` |
 | EB rate limit | "PSD2-graense naaet (4/4 daglige forespoergsler). Proev igen i morgen." |
-| File not found | "Filen `{filename}` blev ikke fundet. Tjek at kommandoen koerte korrekt." |
-| Empty file | "Filen `{filename}` er tom. Koer kommandoen igen." |
-| Invalid JSON | "Filen `{filename}` indeholder ugyldigt JSON." (keep file for inspection) |
+| Pasted text not valid JSON | "Det indsatte er ikke gyldigt JSON. Koer kommandoerne igen og proev Cmd+V." |
+| Key missing from combined JSON | "Data for `{account_name}` mangler. Tjek at kommandoen koerte korrekt." |
+| Key has `_error` value | Report the error, skip that account |
 | No new transactions | "Ingen nye transaktioner fundet siden sidste synkronisering ({date})." |
 
 ## Side Effects
 - Writes to transactions.csv (new rows)
 - Updates accounts.csv (`last_synced` timestamp, `balance`, `balance_type`, `balance_date`)
 - Writes to action-log.csv
-- Creates and deletes temporary JSON files in `~/Documents/SmartSpender/`
+- Temporary JSON files are written to `~/Documents/SmartSpender/` by terminal commands (not by Claude)
 
 ## Related Commands
 - `/smartspender:analyze` — Categorize the synced transactions
