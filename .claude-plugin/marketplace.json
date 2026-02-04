@@ -12,7 +12,7 @@
       "name": "smartspender",
       "source": ".",
       "description": "Sync transactions, analyze spending, detect subscriptions, and take action.",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "author": {
         "name": "Peer Jakobsen"
       },
